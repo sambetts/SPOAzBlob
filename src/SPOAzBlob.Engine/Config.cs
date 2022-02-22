@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SPOAzBlob.Utils
+namespace SPOAzBlob.Engine
 {
 
     public class Config : AzureAdWithTelemetryConfig

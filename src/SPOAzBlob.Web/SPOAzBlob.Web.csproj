@@ -11,8 +11,7 @@
     <SpaProxyServerUrl>https://localhost:44433</SpaProxyServerUrl>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-  </PropertyGroup>
+</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
@@ -28,12 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove=".gitignore" />
     <None Remove="ClientApp\.gitignore" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CommonUtils\CommonUtils.csproj" />
-    <ProjectReference Include="..\SPOAzBlob.Utils\SPOAzBlob.Utils.csproj" />
+    <ProjectReference Include="..\SPOAzBlob.Engine\SPOAzBlob.Engine.csproj" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

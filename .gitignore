@@ -12,3 +12,5 @@
 /src/SPOAzBlob.Web/ClientApp/src/authConfig - dev.js
 /src/SPOAzBlob.Web/ClientApp/src/authConfig.js
 /src/SPOAzBlob.Web/ClientApp/.vscode
+/src/SPOAzBlob.Engine/bin/Debug/net6.0
+/src/SPOAzBlob.Engine/obj
