@@ -18,6 +18,12 @@ namespace SPOAzBlob.Engine
         [ConfigValue]
         public string BlobContainerName { get; set; } = string.Empty;
 
+        [ConfigValue]
+        public string SharePointSiteId { get; set; } = string.Empty;
+
+        [ConfigValue]
+        public string TargetListName { get; set; } = string.Empty;
+
 
         [ConfigSection("ConnectionStrings")]
         public ConnectionStrings ConnectionStrings { get; set; } = null!;

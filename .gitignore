@@ -14,3 +14,6 @@
 /src/SPOAzBlob.Web/ClientApp/.vscode
 /src/SPOAzBlob.Engine/bin/Debug/net6.0
 /src/SPOAzBlob.Engine/obj
+/src/SPOAzBlob.Tests/bin/Debug/net6.0
+/src/SPOAzBlob.Tests/obj
+/src/SPOAzBlob.Tests/appsettings.json
