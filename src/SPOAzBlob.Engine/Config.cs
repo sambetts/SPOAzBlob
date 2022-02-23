@@ -21,9 +21,7 @@ namespace SPOAzBlob.Engine
         [ConfigValue]
         public string SharePointSiteId { get; set; } = string.Empty;
 
-        [ConfigValue]
-        public string TargetListName { get; set; } = string.Empty;
-
+        public string ServiceBusQueueName => "graphupdates";
 
         [ConfigSection("ConnectionStrings")]
         public ConnectionStrings ConnectionStrings { get; set; } = null!;
@@ -38,6 +36,9 @@ namespace SPOAzBlob.Engine
 
         [ConfigValue]
         public string Storage { get; set; } = string.Empty;
+
+        [ConfigValue]
+        public string ServiceBus { get; set; } = string.Empty;
 
     }
 }

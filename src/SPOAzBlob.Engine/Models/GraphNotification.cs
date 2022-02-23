@@ -5,12 +5,15 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace SPOAzBlob.Functions.Models
+namespace SPOAzBlob.Engine.Models
 {
     public class GraphNotification
     {
         [JsonPropertyName("value")]
-        public ChangeNotification[] Notifications { get; set; }
+        public List<ChangeNotification> Notifications { get; set; } = new List<ChangeNotification>();
+
+        [JsonIgnore]
+        public bool IsValid => Notifications.Any();
     }
 
     public class ChangeNotification
@@ -18,22 +21,17 @@ namespace SPOAzBlob.Functions.Models
         [JsonPropertyName("subscriptionId")]
         public Guid SubscriptionId { get; set; }
 
-        [JsonPropertyName("clientState")]
-        public object ClientState { get; set; }
-
         [JsonPropertyName("resource")]
-        public string Resource { get; set; }
+        public string Resource { get; set; } = string.Empty;
 
         [JsonPropertyName("tenantId")]
-        public Guid TenantId { get; set; }
+        public Guid TenantId { get; set; } = Guid.Empty;
 
-        [JsonPropertyName("resourceData")]
-        public object ResourceData { get; set; }
 
         [JsonPropertyName("subscriptionExpirationDateTime")]
         public DateTimeOffset SubscriptionExpirationDateTime { get; set; }
 
         [JsonPropertyName("changeType")]
-        public string ChangeType { get; set; }
+        public string ChangeType { get; set; } = string.Empty;
     }
 }

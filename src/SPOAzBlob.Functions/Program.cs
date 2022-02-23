@@ -1,4 +1,5 @@
-﻿using CommonUtils;
+﻿using Azure.Messaging.ServiceBus;
+using CommonUtils;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,11 @@ namespace SPOAzBlob.Functions
                     services.AddSingleton(config);
                     var telemetry = new DebugTracer(config.AppInsightsInstrumentationKey, "Functions");
                     services.AddSingleton(telemetry);
+
+                    var sbClient = new ServiceBusClient(config.ConnectionStrings.ServiceBus);
+                    var sbSender = sbClient.CreateSender(config.ServiceBusQueueName);
+                    services.AddSingleton(sbSender);
+
                 })
                 .Build();
 

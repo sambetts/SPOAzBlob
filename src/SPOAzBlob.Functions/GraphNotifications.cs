@@ -2,11 +2,14 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using CommonUtils;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using SPOAzBlob.Engine.Models;
 
 namespace SPOAzBlob.Functions
 {
@@ -35,12 +38,23 @@ namespace SPOAzBlob.Functions
                 return response;
             }
 
-            var blobServiceClient = (BlobServiceClient)context.InstanceServices.GetService(typeof(BlobServiceClient));
+            var sbSender = (ServiceBusSender)context.InstanceServices.GetService(typeof(ServiceBusSender));
 
 
             // Figure out update
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            trace.TrackTrace($"Got Graph update notification with body '{requestBody}'");
+
+            var update = JsonSerializer.Deserialize<GraphNotification>(requestBody);
+            if (update != null && update.IsValid)
+            {
+                var sbMsg = new ServiceBusMessage(requestBody);
+                await sbSender.SendMessageAsync(sbMsg);
+                trace.TrackTrace($"Got Graph {update.Notifications.Count} updates from Graph. Sent to Service-Bus queue for async processing.");
+            }
+            else
+            {
+                trace.TrackTrace($"Got invalid Graph update notification with body '{requestBody}'");
+            }
 
             return response;
         }

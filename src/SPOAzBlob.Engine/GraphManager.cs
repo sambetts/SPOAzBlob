@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace SPOAzBlob.Engine
 {
+    /// <summary>
+    /// Something that interacts with Graph
+    /// </summary>
     public abstract class GraphManager
     {
 
