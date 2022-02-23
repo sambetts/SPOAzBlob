@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 namespace SPOAzBlob.Tests
 {
     [TestClass]
-    public class SPTests
+    public class Tests
     {
         #region Plumbing
         const string FILE_CONTENTS = "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor";
 
-        private Config? _config;
+        private TestConfig? _config;
         private DebugTracer _tracer = DebugTracer.ConsoleOnlyTracer();
 
         [TestInitialize]
@@ -28,12 +28,12 @@ namespace SPOAzBlob.Tests
 
 
             var config = builder.Build();
-            _config = new Config(config);
+            _config = new TestConfig(config);
         }
         #endregion
 
         [TestMethod]
-        public async Task UploadTest()
+        public async Task SPOUploadTest()
         {
             var sp = new SPManager(_config!, _tracer);
             using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(FILE_CONTENTS)))
@@ -45,9 +45,9 @@ namespace SPOAzBlob.Tests
 
 
         [TestMethod]
-        public async Task WebhookTests()
+        public async Task WebhooksManagerTests()
         {
-            var webhooksManager = new WebhooksManager(_config!, _tracer, "https://spoblob.ngrok.io");
+            var webhooksManager = new WebhooksManager(_config!, _tracer, _config!.TestGraphNotificationEndpoint);
             await webhooksManager.DeleteWebhooks();
             var noWebHooksValidResult = await webhooksManager.HaveValidWebhook();
 

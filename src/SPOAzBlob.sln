@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtils", "CommonUtils\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPOAzBlob.Tests", "SPOAzBlob.Tests\SPOAzBlob.Tests.csproj", "{AC2CE8D1-2B98-47D2-80C0-CEB2F11B86B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPOAzBlob.Functions", "SPOAzBlob.Functions\SPOAzBlob.Functions.csproj", "{D91686E6-E318-4F5B-95D1-A80284FA7BFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{AC2CE8D1-2B98-47D2-80C0-CEB2F11B86B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC2CE8D1-2B98-47D2-80C0-CEB2F11B86B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC2CE8D1-2B98-47D2-80C0-CEB2F11B86B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D91686E6-E318-4F5B-95D1-A80284FA7BFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D91686E6-E318-4F5B-95D1-A80284FA7BFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D91686E6-E318-4F5B-95D1-A80284FA7BFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D91686E6-E318-4F5B-95D1-A80284FA7BFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

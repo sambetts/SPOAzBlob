@@ -9,7 +9,6 @@ builder.Services.AddControllersWithViews();
 
 var config = new Config(builder.Configuration);
 builder.Services.AddSingleton(config);
-builder.Services.AddSingleton(config);
 builder.Services.AddApplicationInsightsTelemetry(config.AppInsightsInstrumentationKey);
 var telemetry = new DebugTracer(config.AppInsightsInstrumentationKey, "Web");
 builder.Services.AddSingleton(telemetry);

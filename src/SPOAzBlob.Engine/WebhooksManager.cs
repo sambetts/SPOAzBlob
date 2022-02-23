@@ -11,13 +11,40 @@ namespace SPOAzBlob.Engine
     // https://docs.microsoft.com/en-us/graph/webhooks#latency
     public class WebhooksManager : GraphManager
     {
-        const string CHANGE_TYPE = "driveItem";
+        const string CHANGE_TYPE = "updated";
         private readonly string _webhookUrl;
         private List<Subscription>? subsCache = null;
 
         public WebhooksManager(Config config, DebugTracer trace, string webhookUrl) : base(config, trace)
         {
+            if (config is null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            if (trace is null)
+            {
+                throw new ArgumentNullException(nameof(trace));
+            }
+
+            if (string.IsNullOrEmpty(webhookUrl))
+            {
+                throw new ArgumentException($"'{nameof(webhookUrl)}' cannot be null or empty.", nameof(webhookUrl));
+            }
+
             this._webhookUrl = webhookUrl;
+        }
+
+        string ResourceUrl
+        {
+            get 
+            {
+
+                var siteUrl = _client.Sites[_config.SharePointSiteId].Drive.Root.RequestUrl;
+                const string GRAPH_URL = "https://graph.microsoft.com/v1.0/";
+                var siteResourceUrl = siteUrl.Substring(GRAPH_URL.Length, siteUrl.Length - GRAPH_URL.Length);
+                return siteResourceUrl;
+            }
         }
 
 
@@ -34,6 +61,8 @@ namespace SPOAzBlob.Engine
             {
                 await _client.Subscriptions[existingSub.Id].Request().DeleteAsync();
             }
+
+            subsCache = null;
         }
         public async Task<Subscription> CreateOrUpdateWebhook()
         {
@@ -58,12 +87,9 @@ namespace SPOAzBlob.Engine
                 // Delete everything with this URL & recreate
                 await DeleteWebhooks();
 
-                var siteUrl = _client.Sites[_config.SharePointSiteId].Drive.Root.RequestUrl;
-                const string GRAPH_URL = "https://graph.microsoft.com/v1.0/";
-                var siteResourceUrl = siteUrl.Substring(GRAPH_URL.Length, siteUrl.Length - GRAPH_URL.Length);
                 returnSub = await _client.Subscriptions.Request().AddAsync(new Subscription
                 {
-                    Resource = siteResourceUrl,
+                    Resource = ResourceUrl,
                     ChangeType = "updated",
                     ExpirationDateTime = expiry,
                     NotificationUrl = _webhookUrl
@@ -78,7 +104,7 @@ namespace SPOAzBlob.Engine
             if (subsCache == null)
             {
                 var subs = await _client.Subscriptions.Request().GetAsync();
-                subsCache = subs.Where(s => s.ChangeType == CHANGE_TYPE && s.NotificationUrl == _webhookUrl).ToList();
+                subsCache = subs.Where(s => s.ChangeType == CHANGE_TYPE && s.NotificationUrl == _webhookUrl && s.Resource == ResourceUrl).ToList();
             }
             return subsCache;
         }
