@@ -29,9 +29,16 @@ namespace SPOAzBlob.Functions
                     var telemetry = new DebugTracer(config.AppInsightsInstrumentationKey, "Functions");
                     services.AddSingleton(telemetry);
 
+                    // Service-bus
                     var sbClient = new ServiceBusClient(config.ConnectionStrings.ServiceBus);
                     var sbSender = sbClient.CreateSender(config.ServiceBusQueueName);
                     services.AddSingleton(sbSender);
+
+                    // Az blob
+                    services.AddAzureClients(builder =>
+                    {
+                        builder.AddBlobServiceClient(config.ConnectionStrings.Storage);
+                    });
 
                 })
                 .Build();

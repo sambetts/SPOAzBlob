@@ -12,14 +12,14 @@ namespace SPOAzBlob.Engine
     /// <summary>
     /// Something that interacts with Graph
     /// </summary>
-    public abstract class GraphManager
+    public abstract class AbstractGraphManager
     {
 
         protected GraphServiceClient _client;
         protected Config _config;
         protected DebugTracer _trace;
 
-        public GraphManager(Config config, DebugTracer trace)
+        public AbstractGraphManager(Config config, DebugTracer trace)
         {
             var options = new TokenCredentialOptions
             {

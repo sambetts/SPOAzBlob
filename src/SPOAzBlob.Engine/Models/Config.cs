@@ -11,20 +11,17 @@ namespace SPOAzBlob.Engine
 
     public class Config : AzureAdWithTelemetryConfig
     {
-        public Config(Microsoft.Extensions.Configuration.IConfiguration config) : base(config)
-        {
-        }
+        public Config(Microsoft.Extensions.Configuration.IConfiguration config) : base(config) { }
 
-        [ConfigValue]
-        public string BlobContainerName { get; set; } = string.Empty;
+        [ConfigValue] public string BlobContainerName { get; set; } = string.Empty;
 
-        [ConfigValue]
-        public string SharePointSiteId { get; set; } = string.Empty;
+        [ConfigValue] public string SharePointSiteId { get; set; } = string.Empty;
 
         public string ServiceBusQueueName => "graphupdates";
+        public string AzureTableActivity => "activity";
+        public string AzureTableLocks => "locks";
 
-        [ConfigSection("ConnectionStrings")]
-        public ConnectionStrings ConnectionStrings { get; set; } = null!;
+        [ConfigSection("ConnectionStrings")] public ConnectionStrings ConnectionStrings { get; set; } = null!;
 
     }
 

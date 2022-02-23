@@ -1,15 +1,10 @@
 ﻿using CommonUtils;
 using Microsoft.Graph;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SPOAzBlob.Engine
 {
     // https://docs.microsoft.com/en-us/graph/webhooks#latency
-    public class WebhooksManager : GraphManager
+    public class WebhooksManager : AbstractGraphManager
     {
         const string CHANGE_TYPE = "updated";
         private readonly string _webhookUrl;

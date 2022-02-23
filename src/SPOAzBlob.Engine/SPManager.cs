@@ -1,10 +1,9 @@
-﻿using Azure.Identity;
-using CommonUtils;
+﻿using CommonUtils;
 using Microsoft.Graph;
 
 namespace SPOAzBlob.Engine
 {
-    public class SPManager : GraphManager
+    public class SPManager : AbstractGraphManager
     {
         public SPManager(Config config, DebugTracer trace) :base (config, trace)
         {
