@@ -42,5 +42,21 @@ namespace SPOAzBlob.Tests
                 await sp.UploadDoc(fileName, fs);
             }
         }
+
+
+        [TestMethod]
+        public async Task WebhookTests()
+        {
+            var webhooksManager = new WebhooksManager(_config!, _tracer, "https://spoblob.ngrok.io");
+            await webhooksManager.DeleteWebhooks();
+            var noWebHooksValidResult = await webhooksManager.HaveValidWebhook();
+
+            Assert.IsFalse(noWebHooksValidResult);
+
+            await webhooksManager.CreateOrUpdateWebhook();
+            var webHooksCreatedValidResult = await webhooksManager.HaveValidWebhook();
+
+            Assert.IsTrue(webHooksCreatedValidResult);
+        }
     }
 }
