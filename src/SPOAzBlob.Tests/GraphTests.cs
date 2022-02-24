@@ -7,7 +7,7 @@ namespace SPOAzBlob.Tests
     [TestClass]
     public class GraphTests : AbstractTest
     {
-
+        // Won't work without a public endpoint (TestGraphNotificationEndpoint) listening for notifications. 
         [TestMethod]
         public async Task WebhooksManagerTests()
         {

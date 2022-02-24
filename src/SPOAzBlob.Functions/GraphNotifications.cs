@@ -32,7 +32,7 @@ namespace SPOAzBlob.Functions
             var queryDictionary = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
             if (queryDictionary.AllKeys.Where(k=> k == VALIDATION_PARAM_NAME).Any())
             {
-                trace.TrackTrace("Got Graph API validation call .Returning validation token.");
+                trace.TrackTrace("Got Graph API validation call. Returning validation token.");
                 response.WriteString(queryDictionary[VALIDATION_PARAM_NAME]);
 
                 return response;
@@ -49,7 +49,7 @@ namespace SPOAzBlob.Functions
             {
                 var sbMsg = new ServiceBusMessage(requestBody);
                 await sbSender.SendMessageAsync(sbMsg);
-                trace.TrackTrace($"Got Graph {update.Notifications.Count} updates from Graph. Sent to Service-Bus queue for async processing.");
+                trace.TrackTrace($"Got updates from Graph. Sent to Service-Bus queue for async processing.");
             }
             else
             {

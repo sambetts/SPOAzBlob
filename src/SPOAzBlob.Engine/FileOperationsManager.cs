@@ -66,7 +66,7 @@ namespace SPOAzBlob.Engine
         /// <summary>
         /// Get recent updates (or all files if 1st time). For each lock, update Azure blob contents for corresponding SP file
         /// </summary>
-        public async Task<List<DriveItem>> ProcessSpoUpdatesForCorrespondingLocks()
+        public async Task<List<DriveItem>> ProcessSpoUpdatesForActiveLocks()
         {
             // Figure out latest changes
             var spManager = new SPManager(_config, _trace);
@@ -79,6 +79,9 @@ namespace SPOAzBlob.Engine
                 // If something has changed in SPO, compare locks to change list
                 var driveId = spItemsChanged[0].ParentReference.DriveId;
                 var allCurrentLocks = await _azureStorageManager.GetLocks(driveId);
+
+                _trace.TrackTrace($"{nameof(ProcessSpoUpdatesForActiveLocks)}: Found {spItemsChanged.Count} SharePoint updates and {allCurrentLocks.Count} active locks.");
+
                 foreach (var currentLock in allCurrentLocks)
                 {
                     var spoDriveItem = spItemsChanged.Where(i => i.WebUrl == currentLock.FileUrl).SingleOrDefault();

@@ -86,7 +86,7 @@ namespace SPOAzBlob.Tests
 
             // Now update Azure from SPO. As no delta token, all items in drive will be read.
             // We should hit our file, but it hasn't changed so won't be updated
-            var fileUpdatedBackToAzure = await fm.ProcessSpoUpdatesForCorrespondingLocks();
+            var fileUpdatedBackToAzure = await fm.ProcessSpoUpdatesForActiveLocks();
             Assert.IsTrue(fileUpdatedBackToAzure.Count == 0);
 
             // Update SPO file again 
@@ -99,7 +99,7 @@ namespace SPOAzBlob.Tests
 
 
             // Now with delta do again. Should've updated 1 record as it has changed
-            fileUpdatedBackToAzure = await fm.ProcessSpoUpdatesForCorrespondingLocks();
+            fileUpdatedBackToAzure = await fm.ProcessSpoUpdatesForActiveLocks();
             Assert.IsTrue(fileUpdatedBackToAzure.Count == 1);
         }
     }

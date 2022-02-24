@@ -1,32 +1,41 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Storage.Blobs;
+using System.Threading.Tasks;
 using CommonUtils;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
+using SPOAzBlob.Engine;
 using SPOAzBlob.Engine.Models;
 
 namespace SPOAzBlob.Functions
 {
     public class SBGraphUpdate
     {
-        private readonly ILogger _logger;
-
-        public SBGraphUpdate(ILoggerFactory loggerFactory)
-        {
-            _logger = loggerFactory.CreateLogger<SBGraphUpdate>();
-        }
-
         [Function("SBGraphUpdate")]
-        public void Run([ServiceBusTrigger("graphupdates", Connection = "ServiceBusConnectionString")] string messageContents, FunctionContext context)
+        public async Task Run([ServiceBusTrigger("graphupdates", Connection = "ServiceBusConnectionString")] string messageContents, FunctionContext context)
         {
             var trace = (DebugTracer)context.InstanceServices.GetService(typeof(DebugTracer));
-            var blobServiceClient = (BlobServiceClient)context.InstanceServices.GetService(typeof(BlobServiceClient));
+            var config = (Config)context.InstanceServices.GetService(typeof(Config));
 
             var update = JsonSerializer.Deserialize<GraphNotification>(messageContents);
             if (update != null && update.IsValid)
             {
-                trace.TrackTrace($"Got Graph {update.Notifications.Count} updates from Service-Bus.");
+                var fm = new FileOperationsManager(config, trace);
+                var results = new List<DriveItem>();
+                try
+                {
+                    results = await fm.ProcessSpoUpdatesForActiveLocks();
+                }
+                catch (Exception ex)
+                {
+                    trace.TrackTrace("Couldn't process new SPO updates", Microsoft.ApplicationInsights.DataContracts.SeverityLevel.Critical);
+                    trace.TrackExceptionAndLogToTrace(ex);
+                }
+
+                trace.TrackTrace($"Processed {results.Count} file updates.");
+
+
             }
             else
             {
