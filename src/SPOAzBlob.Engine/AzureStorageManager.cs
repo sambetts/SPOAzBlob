@@ -53,7 +53,9 @@ namespace SPOAzBlob.Engine
         public async Task<FileLock?> GetLock(DriveItem driveItem)
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
-            var queryResultsFilter = tableClient.QueryAsync<FileLock>(f => f.RowKey == System.Net.WebUtility.UrlEncode(driveItem.WebUrl));
+            var queryResultsFilter = tableClient.QueryAsync<FileLock>(f => 
+                f.RowKey == System.Net.WebUtility.UrlEncode(driveItem.WebUrl)
+            );
 
             // Iterate the <see cref="Pageable"> to access all queried entities.
             await foreach (var qEntity in queryResultsFilter)
@@ -83,7 +85,7 @@ namespace SPOAzBlob.Engine
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
             var encoded = System.Net.WebUtility.UrlEncode(driveItem.WebUrl);
-            tableClient.DeleteEntity(encoded, encoded);
+            tableClient.DeleteEntity(driveItem.ParentReference.DriveId, encoded);
         }
 
         async Task<TableClient> GetTableClient(string tableName)

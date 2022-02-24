@@ -13,14 +13,20 @@ namespace SPOAzBlob.Engine.Models
         public FileLock(DriveItem driveItem, string userName)
         {
             var encoded = System.Net.WebUtility.UrlEncode(driveItem.WebUrl);
-            this.PartitionKey = encoded;
+
+            // Partition by drive
+            this.PartitionKey = driveItem.ParentReference.DriveId;
+            
+            // Key is encoded URL
             this.RowKey = encoded;
+
+
             this.FileContentETag = driveItem.CTag;
             this.LockedByUser = userName;
         }
 
         public string LockedByUser { get; set; } = string.Empty;
-        public string FileUrl => System.Net.WebUtility.UrlDecode(PartitionKey);
+        public string FileUrl => System.Net.WebUtility.UrlDecode(RowKey);
         public string PartitionKey { get; set; } = string.Empty;
         public string RowKey { get; set; } = String.Empty;
         public DateTimeOffset? Timestamp { get; set; }
