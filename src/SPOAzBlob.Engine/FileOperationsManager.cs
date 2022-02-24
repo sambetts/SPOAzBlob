@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using CommonUtils;
 using Microsoft.Graph;
+using SPOAzBlob.Engine.Models;
 
 namespace SPOAzBlob.Engine
 {
@@ -70,7 +71,7 @@ namespace SPOAzBlob.Engine
             return newFile;
         }
 
-        public async Task UpdateAzureWithSpoFile(string azureBlobFileLocation)
+        public async Task UpdateAzureWithSpoFile(GraphNotification graphNotification)
         {
         }
     }

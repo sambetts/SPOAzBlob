@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPOAzBlob.Engine", "SPOAzBl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtils", "CommonUtils\CommonUtils.csproj", "{9D36547F-D77B-47DC-A949-B4437F2F35E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPOAzBlob.Tests", "SPOAzBlob.Tests\SPOAzBlob.Tests.csproj", "{AC2CE8D1-2B98-47D2-80C0-CEB2F11B86B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPOAzBlob.Tests", "SPOAzBlob.Tests\SPOAzBlob.Tests.csproj", "{AC2CE8D1-2B98-47D2-80C0-CEB2F11B86B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPOAzBlob.Functions", "SPOAzBlob.Functions\SPOAzBlob.Functions.csproj", "{D91686E6-E318-4F5B-95D1-A80284FA7BFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPOAzBlob.Functions", "SPOAzBlob.Functions\SPOAzBlob.Functions.csproj", "{D91686E6-E318-4F5B-95D1-A80284FA7BFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

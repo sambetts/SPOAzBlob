@@ -34,7 +34,6 @@ namespace SPOAzBlob.Engine
         {
             get 
             {
-
                 var siteUrl = _client.Sites[_config.SharePointSiteId].Drive.Root.RequestUrl;
                 const string GRAPH_URL = "https://graph.microsoft.com/v1.0/";
                 var siteResourceUrl = siteUrl.Substring(GRAPH_URL.Length, siteUrl.Length - GRAPH_URL.Length);

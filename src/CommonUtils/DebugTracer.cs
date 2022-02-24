@@ -36,12 +36,13 @@ namespace CommonUtils
 
         #endregion
 
-        public void TrackException(Exception ex)
+        public void TrackExceptionAndLogToTrace(Exception ex)
         {
             if (AppInsights != null)
             {
                 AppInsights.TrackException(ex);
             }
+            TrackTrace($"Got error {ex.Message}", Microsoft.ApplicationInsights.DataContracts.SeverityLevel.Error);
         }
 
         public void TrackTrace(string sayWut, Microsoft.ApplicationInsights.DataContracts.SeverityLevel severityLevel)

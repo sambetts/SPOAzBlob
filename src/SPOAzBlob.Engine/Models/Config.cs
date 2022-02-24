@@ -16,6 +16,7 @@ namespace SPOAzBlob.Engine
         [ConfigValue] public string BlobContainerName { get; set; } = string.Empty;
 
         [ConfigValue] public string SharePointSiteId { get; set; } = string.Empty;
+        [ConfigValue(true)] public string WebhookUrlOverride { get; set; } = string.Empty;
 
         public string ServiceBusQueueName => "graphupdates";
         public string AzureTableActivity => "activity";
