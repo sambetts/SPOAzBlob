@@ -18,5 +18,8 @@ namespace SPOAzBlob.Tests
 
         [ConfigValue]
         public string TestGraphNotificationEndpoint { get; set; } = string.Empty;
+
+        [ConfigValue]
+        public string AzureAdAppDisplayName { get; set; } = string.Empty;
     }
 }

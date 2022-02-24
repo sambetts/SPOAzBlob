@@ -44,7 +44,7 @@ namespace SPOAzBlob.Tests
             await fileUpdater.UploadSharePointFileToAzureBlob(fileName, "Unit tester");
 
             // Create a lock for another user for this file
-            await fileUpdater.SetLock(spoDoc, "Bob");
+            await fileUpdater.SetOrUpdateLock(spoDoc, "Bob");
 
             // Now when we upload again, we should get an error
             await Assert.ThrowsExceptionAsync<SetLockFileLockedByAnotherUserException>(async () => await fileUpdater.UploadSharePointFileToAzureBlob(fileName, "Unit tester"));
@@ -71,23 +71,54 @@ namespace SPOAzBlob.Tests
 
             var azManager = new AzureStorageManager(_config!, _tracer);
 
+            var initialLocks = await azManager.GetLocks(spoDoc.ParentReference.DriveId);
+
             // No lock for this new doc yet. Make sure it's null
             var fileLock = await azManager.GetLock(spoDoc);
             Assert.IsNull(fileLock);
 
             // Set new lock & check again
-            await azManager.SetLock(spoDoc, "Unit tester");
+            await azManager.SetOrUpdateLock(spoDoc, "Unit tester");
             fileLock = await azManager.GetLock(spoDoc);
             Assert.IsNotNull(fileLock);
 
+            // Check count
+            var postNewLockInsertLocks = await azManager.GetLocks(spoDoc.ParentReference.DriveId);
+            Assert.IsTrue(initialLocks.Count < postNewLockInsertLocks.Count);
+
 
             // Set lock for same file but different user. Should fail
-            await Assert.ThrowsExceptionAsync<SetLockFileLockedByAnotherUserException>(async () => await azManager.SetLock(spoDoc, "Unit tester2"));
+            await Assert.ThrowsExceptionAsync<SetLockFileLockedByAnotherUserException>(async () => await azManager.SetOrUpdateLock(spoDoc, "Unit tester2"));
 
             // Clear lock & check again
             await azManager.ClearLock(spoDoc);
             fileLock = await azManager.GetLock(spoDoc);
             Assert.IsNull(fileLock);
+        }
+
+
+        [TestMethod]
+        public async Task PropertyBagReadAndWriteTest()
+        {
+            var azManager = new AzureStorageManager(_config!, _tracer);
+
+            var randomPropName = DateTime.Now.Ticks.ToString();
+            var randomPropVal = randomPropName + "-val";
+
+            // No lock for this new doc yet. Make sure it's null
+            var propertyBag = await azManager.GetPropertyValue(randomPropName);
+            Assert.IsNull(propertyBag);
+
+            // Set new lock & check again
+            await azManager.SetPropertyValue(randomPropName, randomPropVal);
+            propertyBag = await azManager.GetPropertyValue(randomPropName);
+            Assert.IsNotNull(propertyBag);
+            Assert.IsTrue(propertyBag.Value == randomPropVal);
+
+            // Clear lock & check again
+            await azManager.ClearPropertyValue(randomPropName);
+            propertyBag = await azManager.GetPropertyValue(randomPropName);
+            Assert.IsNull(propertyBag);
         }
     }
 }

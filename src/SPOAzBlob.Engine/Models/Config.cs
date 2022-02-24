@@ -21,6 +21,7 @@ namespace SPOAzBlob.Engine
         public string ServiceBusQueueName => "graphupdates";
         public string AzureTableActivity => "activity";
         public string AzureTableLocks => "locks";
+        public string AzureTablePropertyBag => "propertybag";
 
         [ConfigSection("ConnectionStrings")] public ConnectionStrings ConnectionStrings { get; set; } = null!;
 
