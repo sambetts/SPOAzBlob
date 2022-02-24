@@ -51,6 +51,7 @@ namespace SPOAzBlob.Tests
         [TestMethod]
         public async Task UploadSpoFileToAzureTests()
         {
+            // Create new file & upload
             var fileName = $"{DateTime.Now.Ticks}.txt";
             DriveItem? spoDoc = null;
             var sp = new SPManager(_config!, _tracer);
@@ -60,7 +61,21 @@ namespace SPOAzBlob.Tests
             }
 
             var fileUpdater = new AzureStorageManager(_config!, _tracer);
-            await fileUpdater.UploadDocToAzureBlob(fileName, "Unit tester");
+            await fileUpdater.UploadSharePointFileToAzureBlob(fileName, "Unit tester");
+
+            // Create a lock for another user for this file
+            await fileUpdater.SetLock(spoDoc, "Bob");
+
+            // Now when we upload again, we should get an error
+            await Assert.ThrowsExceptionAsync<FileLockedByAnotherUserException>(async () => await fileUpdater.UploadSharePointFileToAzureBlob(fileName, "Unit tester"));
+
+            // Update file in SPO but don't update lock. Try uploading again with old lock still in place.
+            using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(FILE_CONTENTS + "v2")))
+            {
+                spoDoc = await sp.UploadDoc(fileName, fs);
+            }
+            await Assert.ThrowsExceptionAsync<FileUpdateConflictException>(async () => await fileUpdater.UploadSharePointFileToAzureBlob(fileName, "Bob"));
+
         }
 
 
@@ -86,6 +101,10 @@ namespace SPOAzBlob.Tests
             await azManager.SetLock(spoDoc, "Unit tester");
             fileLock = await azManager.GetLock(spoDoc);
             Assert.IsNotNull(fileLock);
+
+
+            // Set lock for same file but different user. Should fail
+            await Assert.ThrowsExceptionAsync<FileLockedByAnotherUserException>(async () => await azManager.SetLock(spoDoc, "Unit tester2"));
 
             // Clear lock & check again
             await azManager.ClearLock(spoDoc);

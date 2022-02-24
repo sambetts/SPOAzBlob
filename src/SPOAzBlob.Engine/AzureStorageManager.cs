@@ -1,14 +1,14 @@
-﻿using Azure;
-using Azure.Data.Tables;
-using Azure.Data.Tables.Models;
+﻿using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using CommonUtils;
 using Microsoft.Graph;
 using SPOAzBlob.Engine.Models;
-using System.IO;
 
 namespace SPOAzBlob.Engine
 {
+    /// <summary>
+    /// Handles Azure blob & table storage
+    /// </summary>
     public class AzureStorageManager : AbstractGraphManager
     {
         private BlobServiceClient _blobServiceClient;
@@ -19,29 +19,16 @@ namespace SPOAzBlob.Engine
             _blobServiceClient = new BlobServiceClient(_config.ConnectionStrings.Storage);
         }
 
-        public async Task UploadDocToAzureBlob(string fileTitle, string userName)
+        public async Task<Uri> UploadSharePointFileToAzureBlob(string fileTitle, string userName)
         {
 
             // Get drive item
             var driveItem = await _client.Sites[_config.SharePointSiteId].Drive.Root.ItemWithPath(fileTitle).Request().GetAsync();
 
             var existingLock = await GetLock(driveItem);
-            if (existingLock != null)
-            {
-                // Does someone else have another lock?
-                if (existingLock.LockedByUser != userName)
-                {
-                    throw new FileLockedAlreadyException(existingLock.LockedByUser);
-                }
-
-                // Was the SP file updated before our lock?
-                if (driveItem.LastModifiedDateTime <= existingLock.Timestamp && existingLock.FileContentETag != driveItem.CTag)
-                {
-                    throw new FileUpdateConflictException(existingLock.LockedByUser);
-                }
-            }
-
-            // Copy to az blob
+            LockCheck(driveItem, existingLock, userName);
+            
+            // Copy file from SPO to az blob
             var containerClient = _blobServiceClient.GetBlobContainerClient(_config.BlobContainerName);
             var fileRef = containerClient.GetBlobClient(fileTitle);
             using (var fs = await _client.Sites[_config.SharePointSiteId].Drive.Root.ItemWithPath(fileTitle).Content.Request().GetAsync())
@@ -49,7 +36,7 @@ namespace SPOAzBlob.Engine
                 await fileRef.UploadAsync(fs, true);
             }
 
-            throw new NotImplementedException();
+            return fileRef.Uri;
         }
 
         public async Task<FileLock?> GetLock(DriveItem driveItem)
@@ -70,6 +57,10 @@ namespace SPOAzBlob.Engine
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
 
+            // Don't overwrite a lock by someone else for this item
+            var existingLock = await GetLock(driveItem);
+            LockCheck(driveItem, existingLock, userName);
+
             var entity = new FileLock(driveItem, userName);
 
             // Entity doesn't exist in table, so invoking UpsertEntity will simply insert the entity.
@@ -89,6 +80,25 @@ namespace SPOAzBlob.Engine
             await _tableServiceClient.CreateTableIfNotExistsAsync(_config.AzureTableLocks);
             var tableClient = _tableServiceClient.GetTableClient(tableName);
             return tableClient;
+        }
+
+
+        private void LockCheck(DriveItem driveItem, FileLock? existingLock, string userName)
+        {
+            if (existingLock != null)
+            {
+                // Does someone else have another lock?
+                if (existingLock.LockedByUser != userName)
+                {
+                    throw new FileLockedByAnotherUserException(existingLock.LockedByUser);
+                }
+
+                // Was the SP file updated before/after our lock?
+                if (existingLock.FileContentETag != driveItem.CTag)
+                {
+                    throw new FileUpdateConflictException(existingLock.LockedByUser);
+                }
+            }
         }
     }
 }

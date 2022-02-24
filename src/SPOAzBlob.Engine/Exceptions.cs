@@ -23,9 +23,9 @@ namespace SPOAzBlob.Engine
         public string OtherUser { get; set; } = string.Empty;
     }
 
-    public class FileLockedAlreadyException : UpdateConflictException
+    public class FileLockedByAnotherUserException : UpdateConflictException
     {
-        public FileLockedAlreadyException(string otherUser) : base(otherUser)
+        public FileLockedByAnotherUserException(string otherUser) : base(otherUser)
         {
         }
     }
