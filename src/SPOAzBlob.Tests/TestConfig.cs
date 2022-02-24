@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SPOAzBlob.Tests
 {
-    internal class TestConfig : Config
+    public class TestConfig : Config
     {
         public TestConfig(IConfiguration config) : base(config)
         {

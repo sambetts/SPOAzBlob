@@ -39,6 +39,17 @@ namespace SPOAzBlob.Engine
             return fileRef.Uri;
         }
 
+        internal string GetFileTitleFromFQDN(Uri azFileUrlWithSAS)
+        {
+            var prefix = _blobServiceClient.Uri.AbsoluteUri + _config.BlobContainerName;
+
+            var title = azFileUrlWithSAS.AbsolutePath.Replace(prefix, string.Empty);
+
+            return title;
+        }
+
+        #region Locks
+
         public async Task<FileLock?> GetLock(DriveItem driveItem)
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
@@ -90,15 +101,17 @@ namespace SPOAzBlob.Engine
                 // Does someone else have another lock?
                 if (existingLock.LockedByUser != userName)
                 {
-                    throw new FileLockedByAnotherUserException(existingLock.LockedByUser);
+                    throw new SetLockFileLockedByAnotherUserException(existingLock.LockedByUser);
                 }
 
                 // Was the SP file updated before/after our lock?
                 if (existingLock.FileContentETag != driveItem.CTag)
                 {
-                    throw new FileUpdateConflictException(existingLock.LockedByUser);
+                    throw new SetLockFileUpdateConflictException();
                 }
             }
         }
+
+        #endregion
     }
 }
