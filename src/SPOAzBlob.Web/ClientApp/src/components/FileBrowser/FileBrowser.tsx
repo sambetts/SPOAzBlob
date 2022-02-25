@@ -39,6 +39,7 @@ export const FileBrowser: React.FC<{ token: string }> = (props) => {
       })
       .catch((error) => 
       {
+        console.log(error);
         alert(error);
       });
 
