@@ -21,5 +21,8 @@ namespace SPOAzBlob.Tests
 
         [ConfigValue]
         public string AzureAdAppDisplayName { get; set; } = string.Empty;
+
+        [ConfigValue]
+        public string TestEmailAddress { get; set; } = string.Empty;
     }
 }

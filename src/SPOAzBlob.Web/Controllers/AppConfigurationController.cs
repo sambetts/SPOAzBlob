@@ -10,7 +10,7 @@ namespace SPO.ColdStorage.Web.Controllers
     /// <summary>
     /// Handles React app requests for app configuration
     /// </summary>
-    //[Microsoft.AspNetCore.Authorization.Authorize]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [ApiController]
     [Route("[controller]")]
     public class AppConfigurationController : ControllerBase

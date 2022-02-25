@@ -22,5 +22,14 @@ namespace SPOAzBlob.Tests
 
             Assert.IsTrue(webHooksCreatedValidResult);
         }
+
+        [TestMethod]
+        public async Task UserManagerTests()
+        {
+            var userManager = new GraphUserManager(_config!, _tracer);
+            var user = await userManager.GetUserByEmail(_config!.TestEmailAddress);
+
+            Assert.IsNotNull(user);
+        }
     }
 }
