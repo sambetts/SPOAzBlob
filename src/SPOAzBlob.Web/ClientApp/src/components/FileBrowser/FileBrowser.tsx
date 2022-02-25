@@ -48,17 +48,14 @@ export const FileBrowser: React.FC<{ token: string }> = (props) => {
   const name = accounts[0] && accounts[0].name;
   return (
     <div>
-      <h1>Cold Storage Access Web</h1>
-
-      <p>This application is for finding files moved into Azure Blob cold storage.</p>
-
-      <span>Signed In: {name}</span>
+      <h1>SPOAzBlob Web</h1>
+      <p>Click on a file to start editing.</p>
+      <span>Signed in as: {name}</span>
       <p><b>Files in Storage Account:</b></p>
-
       {!loading && client ?
         (
           <div>
-            <BlobFileList client={client!} accessToken={props.token} storageInfo={serviceConfiguration!.storageInfo} />
+            <BlobFileList containerClient={client!} accessToken={props.token} config={serviceConfiguration!} />
           </div>
         )
         : <div>Loading</div>

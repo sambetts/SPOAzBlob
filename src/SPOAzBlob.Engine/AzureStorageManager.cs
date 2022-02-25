@@ -90,8 +90,10 @@ namespace SPOAzBlob.Engine
         public async Task<FileLock?> GetLock(DriveItem driveItem)
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
+
+
             var queryResultsFilter = tableClient.QueryAsync<FileLock>(f =>
-                f.RowKey == System.Net.WebUtility.UrlEncode(driveItem.WebUrl) &&
+                f.RowKey == System.Net.WebUtility.UrlEncode(FileLock.GetUrlForDriveItem(driveItem)) &&
                 f.PartitionKey == driveItem.ParentReference.DriveId
             );
 

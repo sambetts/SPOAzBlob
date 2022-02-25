@@ -2,6 +2,7 @@
 using Azure.Storage.Sas;
 using CommonUtils;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Graph;
 using SPOAzBlob.Engine;
 using SPOAzBlob.Web.Models;
 
@@ -16,11 +17,13 @@ namespace SPO.ColdStorage.Web.Controllers
     public class AppConfigurationController : ControllerBase
     {
         private readonly DebugTracer _tracer;
+        private readonly GraphServiceClient _graphServiceClient;
         private readonly Config _config;
 
-        public AppConfigurationController(Config config, DebugTracer tracer)
+        public AppConfigurationController(Config config, DebugTracer tracer, GraphServiceClient graphServiceClient)
         {
             _tracer = tracer;
+            this._graphServiceClient = graphServiceClient;
             this._config = config;
         }
 
@@ -28,9 +31,11 @@ namespace SPO.ColdStorage.Web.Controllers
         // Generate app ServiceConfiguration + storage configuration + key to read blobs
         // GET: AppConfiguration/ServiceConfiguration
         [HttpGet("[action]")]
-        public ActionResult<ServiceConfiguration> GetServiceConfiguration()
+        public async Task<ActionResult<ServiceConfiguration>> GetServiceConfiguration()
         {
             var client = new BlobServiceClient(_config.ConnectionStrings.Storage);
+
+            var driveInfo = await _graphServiceClient.Sites[_config.SharePointSiteId].Drive.Root.Request().GetAsync();
 
             // Generate a new shared-access-signature
             var sasUri = client.GenerateAccountSasUri(AccountSasPermissions.List | AccountSasPermissions.Read,
@@ -40,6 +45,7 @@ namespace SPO.ColdStorage.Web.Controllers
             // Return for react app
             return new ServiceConfiguration 
             {
+                BaseSharePointDriveUrl = driveInfo.WebUrl,
                 StorageInfo = new StorageInfo
                 {
                     AccountURI = client.Uri.ToString(),

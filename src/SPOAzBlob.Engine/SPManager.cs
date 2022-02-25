@@ -18,7 +18,8 @@ namespace SPOAzBlob.Engine
                 .Request()
                 .PutAsync<DriveItem>(fs);
 
-            return result;
+            var driveItemFull = await _client.Sites[_config.SharePointSiteId].Drive.Items[result.Id].Request().Expand("listItem").GetAsync();
+            return driveItemFull;
         }
 
 

@@ -10,9 +10,15 @@ namespace SPOAzBlob.Engine.Models
         { 
         }
 
+        public static string GetUrlForDriveItem(DriveItem driveItem)
+        {
+            var docUrl = driveItem.ListItem?.WebUrl ?? driveItem.WebUrl;
+            return docUrl;
+        }
+
         public FileLock(DriveItem driveItem, string userName)
         {
-            var encoded = System.Net.WebUtility.UrlEncode(driveItem.WebUrl);
+            var encoded = System.Net.WebUtility.UrlEncode(GetUrlForDriveItem(driveItem));
 
             // Partition by drive
             this.PartitionKey = driveItem.ParentReference.DriveId;

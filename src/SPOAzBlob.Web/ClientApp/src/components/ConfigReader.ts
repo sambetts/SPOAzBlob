@@ -29,13 +29,8 @@ export interface StorageInfo {
   containerName: string
 }
 
-export interface SearchConfiguration {
-  indexName: string,
-  serviceName: string,
-  queryKey: string
-}
 
 export interface ServiceConfiguration {
   storageInfo: StorageInfo,
-  searchConfiguration: SearchConfiguration
+  baseSharePointDriveUrl: string
 }

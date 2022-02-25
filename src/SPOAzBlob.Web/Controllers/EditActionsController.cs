@@ -31,7 +31,7 @@ namespace SPO.ColdStorage.Web.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult<DriveItem>> StartEdit(string url)
         {
-            var emailClaimValue = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+            var emailClaimValue = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn")?.Value;
             var um = new GraphUserManager(_config, _tracer);
             if (string.IsNullOrEmpty(emailClaimValue))
             {
