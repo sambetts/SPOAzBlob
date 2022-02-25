@@ -27,7 +27,7 @@ namespace SPO.ColdStorage.Web.Controllers
 
 
         // Start editing a document in SPO
-        // POST: EditActions/StartEdit
+        // POST: EditActions/StartEdit?url=1232
         [HttpPost("[action]")]
         public async Task<ActionResult<DriveItem>> StartEdit(string url)
         {
@@ -41,6 +41,27 @@ namespace SPO.ColdStorage.Web.Controllers
 
             var fm = new FileOperationsManager(_config, _tracer);
             return await fm.StartFileEditInSpo(url, user.DisplayName);
+        }
+
+        // Deletes lock for document
+        // POST: EditActions/ReleaseLock?driveItemId=123
+        [HttpPost("[action]")]
+        public async Task<ActionResult> ReleaseLock(string driveItemId)
+        {
+            var driveInfo = await _graphServiceClient.Sites[_config.SharePointSiteId].Drive.Root.Request().GetAsync();
+
+            var fm = new AzureStorageManager(_config, _tracer);
+            var locks = await fm.GetLocks(driveInfo.ParentReference.DriveId);
+            foreach (var l in locks)
+            {
+                if (l.RowKey == driveItemId)
+                {
+                    await fm.ClearLock(l);
+                    return Ok();
+                }
+            }
+
+            return NotFound($"No lock with drive Id '{driveItemId}'");
         }
 
         // GET: EditActions/GetActiveLocks

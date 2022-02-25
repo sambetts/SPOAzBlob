@@ -10,29 +10,23 @@ namespace SPOAzBlob.Engine.Models
         { 
         }
 
-        public static string GetUrlForDriveItem(DriveItem driveItem)
+        public FileLock(DriveItem driveItem, string azureBlobUrl, string userName)
         {
-            var docUrl = driveItem.ListItem?.WebUrl ?? driveItem.WebUrl;
-            return docUrl;
-        }
-
-        public FileLock(DriveItem driveItem, string userName)
-        {
-            var encoded = System.Net.WebUtility.UrlEncode(GetUrlForDriveItem(driveItem));
-
             // Partition by drive
             this.PartitionKey = driveItem.ParentReference.DriveId;
             
             // Key is encoded URL
-            this.RowKey = encoded;
+            this.RowKey = driveItem.Id;
 
-
+            this.AzureBlobUrl = azureBlobUrl;
+            this.WebUrl = driveItem.WebUrl;
             this.FileContentETag = driveItem.CTag;
             this.LockedByUser = userName;
         }
 
         public string LockedByUser { get; set; } = string.Empty;
-        public string FileUrl => System.Net.WebUtility.UrlDecode(RowKey);
+        public string WebUrl { get; set; } = string.Empty;
+        public string AzureBlobUrl { get; set; } = string.Empty;
         public string PartitionKey { get; set; } = string.Empty;
         public string RowKey { get; set; } = String.Empty;
         public DateTimeOffset? Timestamp { get; set; }

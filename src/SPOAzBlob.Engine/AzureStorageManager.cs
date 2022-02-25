@@ -93,7 +93,7 @@ namespace SPOAzBlob.Engine
 
 
             var queryResultsFilter = tableClient.QueryAsync<FileLock>(f =>
-                f.RowKey == System.Net.WebUtility.UrlEncode(FileLock.GetUrlForDriveItem(driveItem)) &&
+                f.RowKey == driveItem.Id &&
                 f.PartitionKey == driveItem.ParentReference.DriveId
             );
 
@@ -108,10 +108,6 @@ namespace SPOAzBlob.Engine
         }
 
 
-        public async Task<List<FileLock>> GetLocks(DriveItem driveItem)
-        {
-            return await GetLocks(driveItem.ParentReference.DriveId);
-        }
         public async Task<List<FileLock>> GetLocks(string driveId)
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
@@ -129,7 +125,7 @@ namespace SPOAzBlob.Engine
             return results;
         }
 
-        public async Task SetOrUpdateLock(DriveItem driveItem, string userName)
+        public async Task SetOrUpdateLock(DriveItem driveItem, string azureBlobUrl, string userName)
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
 
@@ -137,7 +133,7 @@ namespace SPOAzBlob.Engine
             var existingLock = await GetLock(driveItem);
             LockCheck(driveItem, existingLock, userName, false);
 
-            var entity = new FileLock(driveItem, userName);
+            var entity = new FileLock(driveItem, azureBlobUrl, userName);
 
             // Entity doesn't exist in table, so invoking UpsertEntity will simply insert the entity.
             await tableClient.UpsertEntityAsync(entity);
@@ -147,8 +143,8 @@ namespace SPOAzBlob.Engine
         public async Task ClearLock(DriveItem driveItem)
         {
             var tableClient = await GetTableClient(_config.AzureTableLocks);
-            var encoded = System.Net.WebUtility.UrlEncode(driveItem.WebUrl);
-            tableClient.DeleteEntity(driveItem.ParentReference.DriveId, encoded);
+
+            tableClient.DeleteEntity(driveItem.ParentReference.DriveId, driveItem.Id);
         }
         public async Task ClearLock(FileLock l)
         {

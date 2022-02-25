@@ -1,5 +1,6 @@
 ﻿using CommonUtils;
 using Microsoft.Graph;
+using SPOAzBlob.Engine.Models;
 
 namespace SPOAzBlob.Engine
 {
@@ -23,7 +24,8 @@ namespace SPOAzBlob.Engine
         /// </summary>
         public async Task<DriveItem> StartFileEditInSpo(string azFileUrlWithSAS, string userName)
         {
-            string fileTitle = _azureStorageManager.GetFileTitleFromFQDN(new Uri(azFileUrlWithSAS));
+            var azFileUri = new Uri(azFileUrlWithSAS);
+            string fileTitle = _azureStorageManager.GetFileTitleFromFQDN(azFileUri);
 
             // See if file already exists
             DriveItem? existingSpoDriveItem = null;
@@ -59,7 +61,7 @@ namespace SPOAzBlob.Engine
                 newFile = await _spManager.UploadDoc(fileTitle, fs);
 
             // Create lock for new file
-            await _azureStorageManager.SetOrUpdateLock(newFile, userName);
+            await _azureStorageManager.SetOrUpdateLock(newFile, azFileUri.AbsoluteUri.Replace(azFileUri.Query, string.Empty), userName);
             return newFile;
         }
 
@@ -84,7 +86,7 @@ namespace SPOAzBlob.Engine
 
                 foreach (var currentLock in allCurrentLocks)
                 {
-                    var spoDriveItem = spItemsChanged.Where(i => i.WebUrl == currentLock.FileUrl).SingleOrDefault();
+                    var spoDriveItem = spItemsChanged.Where(i => i.Id == currentLock.RowKey).SingleOrDefault();
                     if (spoDriveItem != null)
                     {
                         var success = false;
@@ -109,7 +111,7 @@ namespace SPOAzBlob.Engine
             return updatedItems;
         }
 
-        private async Task<bool> UpdateAzureFile(DriveItem spoDriveItem, Models.FileLock currentLock)
+        private async Task<bool> UpdateAzureFile(DriveItem spoDriveItem, FileLock currentLock)
         {
             var userName = GetUserName(spoDriveItem.LastModifiedBy);
 
@@ -117,7 +119,7 @@ namespace SPOAzBlob.Engine
             {
                 // Update lock 1st
                 currentLock.FileContentETag = spoDriveItem.CTag;
-                await _azureStorageManager.SetOrUpdateLock(spoDriveItem, userName);
+                await _azureStorageManager.SetOrUpdateLock(spoDriveItem, currentLock.AzureBlobUrl, userName);
 
                 // Upload to SP
                 await _azureStorageManager.UploadSharePointFileToAzureBlob(spoDriveItem, userName);

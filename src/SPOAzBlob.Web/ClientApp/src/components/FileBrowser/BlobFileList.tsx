@@ -69,14 +69,16 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
     }
 
     // Find if an Azure blob has a lock
-    findLockFor(blobName: string): FileLock | null {
+    findLockFor(relativeBlobName: string): FileLock | null {
         let l: FileLock | null = null;
-        const azStorageAccountRoot = this.props.config.storageInfo + "\\" + this.props.config.storageInfo.containerName;
+        let azStorageAccountRoot = this.props.config.storageInfo.accountURI + this.props.config.storageInfo.containerName + "/";
+
+        const blobNameFqdn = azStorageAccountRoot + relativeBlobName;
+
         if (this.state.activeLocks !== null) {
             this.state.activeLocks.forEach((lock: FileLock) => {
-                const relativeUrlSpo = lock.fileUrl.replace(this.props.config.baseSharePointDriveUrl, "")
-                const relativeUrlAzBlob = blobName.replace(azStorageAccountRoot, "")
-                if (relativeUrlAzBlob === relativeUrlSpo) {
+                
+                if (lock.azureBlobUrl === blobNameFqdn) {
                     l = lock;
                 }
             });
@@ -116,7 +118,7 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
         }
     }
 
-    refreshAllLocks() {
+    refreshAllLocks = () => {
         this.refreshFilesAndLocks();
     }
 
@@ -158,7 +160,7 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
                             }
                             {this.state.blobItems && this.state.blobItems.map(blob => {
                                 return <File blobAndLock={blob} storageInfo={this.props.config.storageInfo}
-                                    token={this.props.accessToken} refreshAllLocks={() => this.refreshAllLocks} />
+                                    token={this.props.accessToken} refreshAllLocks={this.refreshAllLocks} />
                             })
                             }
                         </div>

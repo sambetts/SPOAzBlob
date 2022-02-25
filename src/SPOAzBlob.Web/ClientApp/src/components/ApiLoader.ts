@@ -32,9 +32,35 @@ export const startAzureFileEdit = async (token: string, url: string): Promise<Dr
         });
 };
 
+
+export const releaseLock = async (token: string, lock: FileLock): Promise<undefined | void> => {
+
+
+    return fetch('EditActions/ReleaseLock?driveItemId=' + lock.rowKey, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        }
+    }
+    )
+        .then(async response => {
+
+            if (response.ok) {
+                return Promise.resolve();
+            }
+            else {
+                const dataText: string = await response.text();
+                return Promise.reject(dataText);
+            }
+        });
+};
+
 export interface FileLock
 {
-    fileUrl: string,
+    rowKey: string,
+    azureBlobUrl: string,
+    webUrl: string,
     lockedByUser: string
 }
 export const getActiveLocks = async (token: string): Promise<FileLock[]> => {
