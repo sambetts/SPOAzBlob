@@ -3,7 +3,10 @@ using Microsoft.Graph;
 
 namespace SPOAzBlob.Engine
 {
-    // https://docs.microsoft.com/en-us/graph/webhooks#latency
+    /// <summary>
+    /// Manages webhooks for update subscriptions.
+    /// https://docs.microsoft.com/en-us/graph/webhooks
+    /// </summary>
     public class WebhooksManager : AbstractGraphManager
     {
         const string CHANGE_TYPE = "updated";
@@ -30,7 +33,7 @@ namespace SPOAzBlob.Engine
             this._webhookUrl = webhookUrl;
         }
 
-        string ResourceUrl
+        string SiteLibraryResourceIdentifier
         {
             get 
             {
@@ -42,13 +45,13 @@ namespace SPOAzBlob.Engine
         }
 
 
-        public async Task<bool> HaveValidWebhook()
+        public async Task<bool> HaveValidSubscription()
         {
-            return (await GetHoks()).Count == 1;
+            return (await GetInScopeSubscriptions()).Count == 1;
         }
         public async Task DeleteWebhooks()
         {
-            var subs = await GetHoks();
+            var subs = await GetInScopeSubscriptions();
 
             // Delete everything with this URL & recreate
             foreach (var existingSub in subs)
@@ -58,10 +61,10 @@ namespace SPOAzBlob.Engine
 
             subsCache = null;
         }
-        public async Task<Subscription> CreateOrUpdateWebhook()
+        public async Task<Subscription> CreateOrUpdateSubscription()
         {
-            var subs = await GetHoks();
-            var validHookAlready = await HaveValidWebhook();
+            var subs = await GetInScopeSubscriptions();
+            var validHookAlready = await HaveValidSubscription();
             var expiry = DateTime.Now.AddDays(7);
             Subscription? returnSub = null;
 
@@ -83,7 +86,7 @@ namespace SPOAzBlob.Engine
 
                 returnSub = await _client.Subscriptions.Request().AddAsync(new Subscription
                 {
-                    Resource = ResourceUrl,
+                    Resource = SiteLibraryResourceIdentifier,
                     ChangeType = "updated",
                     ExpirationDateTime = expiry,
                     NotificationUrl = _webhookUrl
@@ -93,12 +96,12 @@ namespace SPOAzBlob.Engine
             return returnSub;
         }
 
-        async Task<List<Subscription>> GetHoks()
+        public async Task<List<Subscription>> GetInScopeSubscriptions()
         {
             if (subsCache == null)
             {
                 var subs = await _client.Subscriptions.Request().GetAsync();
-                subsCache = subs.Where(s => s.ChangeType == CHANGE_TYPE && s.NotificationUrl == _webhookUrl && s.Resource == ResourceUrl).ToList();
+                subsCache = subs.Where(s => s.ChangeType == CHANGE_TYPE && s.NotificationUrl == _webhookUrl && s.Resource == SiteLibraryResourceIdentifier).ToList();
             }
             return subsCache;
         }

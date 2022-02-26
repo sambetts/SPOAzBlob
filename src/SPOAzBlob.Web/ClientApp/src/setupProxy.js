@@ -6,7 +6,8 @@ const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_H
 
 const context = [
     "/AppConfiguration",
-    "/EditActions"
+    "/EditActions",
+    "/WebhookAdmin"
 ];
 
 module.exports = function (app) {

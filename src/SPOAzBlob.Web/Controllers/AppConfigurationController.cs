@@ -46,6 +46,7 @@ namespace SPO.ColdStorage.Web.Controllers
             return new ServiceConfiguration 
             {
                 BaseSharePointDriveUrl = driveInfo.WebUrl,
+                WebhookUrl = _config.WebhookUrlOverride,
                 StorageInfo = new StorageInfo
                 {
                     AccountURI = client.Uri.ToString(),

@@ -32,5 +32,6 @@ export interface StorageInfo {
 
 export interface ServiceConfiguration {
   storageInfo: StorageInfo,
+  webhookUrl: string,
   baseSharePointDriveUrl: string
 }

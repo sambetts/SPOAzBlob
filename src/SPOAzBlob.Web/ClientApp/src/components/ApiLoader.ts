@@ -34,8 +34,6 @@ export const startAzureFileEdit = async (token: string, url: string): Promise<Dr
 
 
 export const releaseLock = async (token: string, lock: FileLock): Promise<undefined | void> => {
-
-
     return fetch('EditActions/ReleaseLock?driveItemId=' + lock.rowKey, {
         method: 'POST',
         headers: {
@@ -88,7 +86,65 @@ export const getActiveLocks = async (token: string): Promise<FileLock[]> => {
 };
 
 
+export const getSubscriptionsConfig = async (token: string): Promise<WebhooksState> => {
 
+    return fetch('WebhookAdmin/SubscriptionsConfig', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        }
+    }
+    )
+        .then(async response => {
+
+            if (response.ok) {
+                var data: WebhooksState = await response.json();
+
+                return Promise.resolve(data);
+            }
+            else {
+                const dataText: string = await response.text();
+                return Promise.reject(dataText);
+            }
+        });
+};
+export interface Subscription
+{
+    notificationUrl: string,
+    resource: string,
+    changeType: string,
+    expirationDateTime: Date
+}
+export interface WebhooksState
+{
+    targetEndpoint: string,
+    subscriptions: Subscription[]
+}
+
+export const postCreateOrUpdateSubscription = async (token: string): Promise<Subscription> => {
+
+    return fetch('WebhookAdmin/CreateOrUpdateSubscription', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        }
+    }
+    )
+        .then(async response => {
+
+            if (response.ok) {
+                var data: Subscription = await response.json();
+
+                return Promise.resolve(data);
+            }
+            else {
+                const dataText: string = await response.text();
+                return Promise.reject(dataText);
+            }
+        });
+};
 export interface BlobWithLock
 {
     blob: BlobItem,

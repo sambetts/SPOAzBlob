@@ -4,6 +4,7 @@
     {
         public StorageInfo StorageInfo { get; set; } = new StorageInfo();
         public string BaseSharePointDriveUrl { get; set; } = string.Empty;
+        public string WebhookUrl { get; set; } = string.Empty;
     }
 
     public class StorageInfo

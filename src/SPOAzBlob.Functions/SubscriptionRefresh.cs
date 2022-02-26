@@ -34,7 +34,7 @@ namespace SPOAzBlob.Functions
             var webhooksManager = new WebhooksManager(config, trace, url);
             try
             {
-                await webhooksManager.CreateOrUpdateWebhook();
+                await webhooksManager.CreateOrUpdateSubscription();
                 trace.TrackTrace($"Webhooks created/renewed successfully");
             }
             catch (Exception ex)

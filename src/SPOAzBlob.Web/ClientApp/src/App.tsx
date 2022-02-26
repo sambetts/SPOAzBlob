@@ -3,7 +3,7 @@ import { Route } from 'react-router';
 import { Layout } from './components/Layout';
 import { FileBrowser } from './components/FileBrowser/FileBrowser';
 import { Login } from './components/Login';
-
+import {WebhookAdminPage} from './components/WebhookAdmin/WebhookAdminPage'
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
 
@@ -47,6 +47,7 @@ export default function App() {
                     <Layout>
                         <AuthenticatedTemplate>
                             <Route exact path='/' render={() => <FileBrowser {... { token: accessToken! }} />} />
+                            <Route exact path='/WebhookAdmin' render={() => <WebhookAdminPage {... { token: accessToken! }} />} />
                         </AuthenticatedTemplate>
                         <UnauthenticatedTemplate>
                             <Route exact path='/' component={Login} />

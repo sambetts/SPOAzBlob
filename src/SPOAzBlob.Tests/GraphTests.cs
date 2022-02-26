@@ -13,12 +13,12 @@ namespace SPOAzBlob.Tests
         {
             var webhooksManager = new WebhooksManager(_config!, _tracer, _config!.TestGraphNotificationEndpoint);
             await webhooksManager.DeleteWebhooks();
-            var noWebHooksValidResult = await webhooksManager.HaveValidWebhook();
+            var noWebHooksValidResult = await webhooksManager.HaveValidSubscription();
 
             Assert.IsFalse(noWebHooksValidResult);
 
-            await webhooksManager.CreateOrUpdateWebhook();
-            var webHooksCreatedValidResult = await webhooksManager.HaveValidWebhook();
+            await webhooksManager.CreateOrUpdateSubscription();
+            var webHooksCreatedValidResult = await webhooksManager.HaveValidSubscription();
 
             Assert.IsTrue(webHooksCreatedValidResult);
         }
