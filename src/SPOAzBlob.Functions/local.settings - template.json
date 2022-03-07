@@ -7,7 +7,7 @@
   },
   "ConnectionStrings": {
     "Storage": "",
-    "ServiceBus": ""
+    "ServiceBus": "<<SB QUEUE CONNECTION STRING>>"
   },
   "AzureAd:TenantId": "",
   "AzureAd:Domain": "",
