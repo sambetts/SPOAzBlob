@@ -15,7 +15,7 @@ export const WebhookAdminPage: React.FC<{ token: string }> = (props) => {
                 setSubscriptionState({ subscriptions: [], targetEndpoint: "" });
                 alert(err);
             })
-    }, []);
+    }, [props.token]);
 
     const postCreateOrUpdateSubscriptionClick = () => {
         setSubCreatingOrValidating(true);
@@ -39,7 +39,7 @@ export const WebhookAdminPage: React.FC<{ token: string }> = (props) => {
                 <p>URL to receive updates from Graph: '{subscriptionState.targetEndpoint}'.</p>
                 {subscriptionState.subscriptions.length === 0 ?
 
-                    <p>No subscriptions found. Graph is not sending updates to URL.</p>
+                    <p className="font-weight-bold">No subscriptions found. Graph is not sending updates to URL.</p>
                     :
                     <table className="table">
                         <thead>

@@ -11,7 +11,7 @@ namespace SPOAzBlob.Tests
         [TestMethod]
         public async Task WebhooksManagerTests()
         {
-            var webhooksManager = new WebhooksManager(_config!, _tracer, _config!.TestGraphNotificationEndpoint);
+            var webhooksManager = new WebhooksManager(_config!, _tracer, _config!.WebhookUrlOverride);
             await webhooksManager.DeleteWebhooks();
             var noWebHooksValidResult = await webhooksManager.HaveValidSubscription();
 

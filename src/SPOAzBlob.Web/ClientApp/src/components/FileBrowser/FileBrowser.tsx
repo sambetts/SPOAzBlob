@@ -58,7 +58,7 @@ export const FileBrowser: React.FC<{ token: string }> = (props) => {
             <BlobFileList containerClient={client!} accessToken={props.token} config={serviceConfiguration!} />
           </div>
         )
-        : <div>Loading</div>
+        : <div>Loading storage config...</div>
       }
     </div>
   );
