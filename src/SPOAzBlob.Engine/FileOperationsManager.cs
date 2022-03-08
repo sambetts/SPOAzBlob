@@ -74,7 +74,7 @@ namespace SPOAzBlob.Engine
             var spManager = new SPManager(_config, _trace);
             var spItemsChanged = await spManager.GetDriveItems(_azureStorageManager);
 
-            var updatedItems = new List<DriveItem>();
+            var updatedItemsInAzureBlob = new List<DriveItem>();
             if (spItemsChanged.Count > 0)
             {
 
@@ -84,6 +84,7 @@ namespace SPOAzBlob.Engine
 
                 _trace.TrackTrace($"{nameof(ProcessSpoUpdatesForActiveLocks)}: Found {spItemsChanged.Count} SharePoint updates and {allCurrentLocks.Count} active locks.");
 
+                // Only worry about updated files with locks
                 foreach (var currentLock in allCurrentLocks)
                 {
                     var spoDriveItem = spItemsChanged.Where(i => i.Id == currentLock.RowKey).SingleOrDefault();
@@ -92,6 +93,7 @@ namespace SPOAzBlob.Engine
                         var success = false;
                         try
                         {
+                            // Send to Azure blob
                             success = await UpdateAzureFile(spoDriveItem, currentLock);
                         }
                         catch (UpdateConflictException ex)
@@ -102,13 +104,16 @@ namespace SPOAzBlob.Engine
 
                         if (success)
                         {
-                            updatedItems.Add(spoDriveItem);
+                            updatedItemsInAzureBlob.Add(spoDriveItem);
                         }
                     }
                 }
 
             }
-            return updatedItems;
+
+            _trace.TrackTrace($"{nameof(ProcessSpoUpdatesForActiveLocks)}: Updated {updatedItemsInAzureBlob.Count} Azure blob files.");
+
+            return updatedItemsInAzureBlob;
         }
 
         private async Task<bool> UpdateAzureFile(DriveItem spoDriveItem, FileLock currentLock)
@@ -117,11 +122,11 @@ namespace SPOAzBlob.Engine
 
             if (currentLock.FileContentETag != spoDriveItem.CTag)
             {
-                // Update lock 1st
+                // Update lock 1st, otherwise UploadSharePointFileToAzureBlob will fail the lock check on contents
                 currentLock.FileContentETag = spoDriveItem.CTag;
                 await _azureStorageManager.SetOrUpdateLock(spoDriveItem, currentLock.AzureBlobUrl, userName);
 
-                // Upload to SP
+                // Upload to Azure
                 await _azureStorageManager.UploadSharePointFileToAzureBlob(spoDriveItem, userName);
 
                 return true;

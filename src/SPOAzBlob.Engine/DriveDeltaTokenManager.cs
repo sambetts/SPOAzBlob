@@ -1,12 +1,11 @@
 ﻿using CommonUtils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SPOAzBlob.Engine.Models;
 
 namespace SPOAzBlob.Engine
 {
+    /// <summary>
+    /// Manager for Graph drive delta tokens
+    /// </summary>
     public class DriveDeltaTokenManager : AbstractGraphManager
     {
         private readonly AzureStorageManager _azureStorageManager;
@@ -22,10 +21,17 @@ namespace SPOAzBlob.Engine
             await _azureStorageManager.SetPropertyValue(propNameForSite, token);
         }
 
-        public async Task<string?> GetToken()
+        public async Task<DriveDelta?> GetToken()
         {
             var propVal = await _azureStorageManager.GetPropertyValue(propNameForSite);
-            return propVal?.Value;
+            if (propVal?.Value != null)
+            {
+                return new DriveDelta(propVal!);
+            }
+            else
+            {
+                return null;
+            }
         }
 
 

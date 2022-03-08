@@ -114,6 +114,7 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
             this.setState({ blobItems: blobs, currentDirs: dirs });
             return Promise.resolve();
         } catch (error) {
+            console.error(error);
             return Promise.reject(error);
         }
     }
@@ -167,7 +168,7 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
 
                     </div>
                     :
-                    <div>Loading...</div>
+                    <div>Loading files from blob storage API...</div>
                 }
             </div>
 

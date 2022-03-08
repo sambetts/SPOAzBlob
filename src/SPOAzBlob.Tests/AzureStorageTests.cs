@@ -1,6 +1,7 @@
 using Microsoft.Graph;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SPOAzBlob.Engine;
+using SPOAzBlob.Engine.Models;
 using System;
 using System.IO;
 using System.Text;
@@ -119,6 +120,32 @@ namespace SPOAzBlob.Tests
             await azManager.ClearPropertyValue(randomPropName);
             propertyBag = await azManager.GetPropertyValue(randomPropName);
             Assert.IsNull(propertyBag);
+        }
+
+        [TestMethod]
+        public async Task DriveDeltaTokenManagerTests()
+        {
+
+            // Check delta string parsing works
+            const string TOKEN = "abc1232";
+            var testUrl = $"https://graph.microsoft.com/v1.0/sites('contoso.sharepoint.com,guid,guid')/drive/root/microsoft.graph.delta(token='{TOKEN}')?$expand=LastModifiedByUser";
+            var tokenFromValidUrl = DriveDelta.ExtractCodeFromGraphUrl(testUrl);
+            Assert.IsTrue(tokenFromValidUrl == TOKEN);
+
+            // Check false case too
+            Assert.IsNull(DriveDelta.ExtractCodeFromGraphUrl("https://graph.microsoft.com/v1.0/sites('contoso.sharepoint.com,guid,guid')"));
+
+            var azManager = new AzureStorageManager(_config!, _tracer);
+            var deltaManager = new DriveDeltaTokenManager(_config!, _tracer, azManager);
+            var spManager = new SPManager(_config!, _tracer);
+            await deltaManager.DeleteToken();
+
+            // Get without a delta token
+            await spManager.GetDriveItems(azManager);
+
+            // We should now have a new delta token
+            var postGetDeltaToken = await deltaManager.GetToken();
+            Assert.IsNotNull(postGetDeltaToken);
         }
     }
 }

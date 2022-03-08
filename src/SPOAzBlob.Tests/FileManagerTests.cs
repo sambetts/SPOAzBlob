@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Microsoft.Graph;
@@ -46,9 +45,9 @@ namespace SPOAzBlob.Tests
 
         }
 
-        // Upload a file to Az blob; start editing; 
+        // Upload a file to Az blob; start editing; make a change; check we can see change again.
         [TestMethod]
-        public async Task UpdateAzFromSpo()
+        public async Task FullCycleTest()
         {
             var azureStorageManager = new AzureStorageManager(_config!, _tracer);
             var _blobServiceClient = new BlobServiceClient(_config!.ConnectionStrings.Storage);
@@ -90,7 +89,8 @@ namespace SPOAzBlob.Tests
             Assert.IsTrue(fileUpdatedBackToAzure.Count == 0);
 
             // Update SPO file again 
-            using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(FILE_CONTENTS + "v2")))
+            const string CONTENTSv2 = FILE_CONTENTS + "v2";
+            using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(CONTENTSv2)))
             {
                 var result = await _client.Sites[_config.SharePointSiteId].Drive.Items[newItem.Id].Content
                                 .Request()
@@ -98,9 +98,18 @@ namespace SPOAzBlob.Tests
             }
 
 
-            // Now with delta do again. Should've updated 1 record as it has changed
+            // Now with delta, trigger an update back to Az blob. Should've updated 1 record as it has changed
             fileUpdatedBackToAzure = await fm.ProcessSpoUpdatesForActiveLocks();
             Assert.IsTrue(fileUpdatedBackToAzure.Count == 1);
+
+            // Verify Azure file has updated content
+            using (var fs = new MemoryStream())
+            {
+                var azFileUpdated = await fileRef.DownloadToAsync(fs);
+                var downloadedFileContents = Encoding.UTF8.GetString(fs.ToArray());
+
+                Assert.AreEqual(CONTENTSv2, downloadedFileContents);
+            }
         }
     }
 }

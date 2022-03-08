@@ -1,5 +1,6 @@
 ﻿using CommonUtils;
 using Microsoft.Graph;
+using SPOAzBlob.Engine.Models;
 
 namespace SPOAzBlob.Engine
 {
@@ -29,9 +30,14 @@ namespace SPOAzBlob.Engine
 
             // Cached delta code?
             var cachedToken = await dm.GetToken();
-            if (!string.IsNullOrEmpty(cachedToken))
+            if (cachedToken != null)
             {
-                deltaCode = cachedToken;
+                deltaCode = cachedToken.Code;
+                _trace.TrackTrace($"Loading drive delta with code from {cachedToken.Timestamp}");
+            }
+            else
+            {
+                _trace.TrackTrace("Loading drive contents (all)");
             }
 
             var startingRequest = _client.Sites[_config.SharePointSiteId].Drive.Root.Delta(deltaCode)
@@ -42,20 +48,18 @@ namespace SPOAzBlob.Engine
 
         private async Task<List<DriveItem>> GetDriveDeltaRecursive(IDriveItemDeltaRequest driveItemDeltaRequest, bool saveDelta, DriveDeltaTokenManager dm)
         {
-            const string TOKEN_PARAM_NAME = "token";
             var deltaItems = await driveItemDeltaRequest.GetAsync();
             var deltaCodeUrl = deltaItems.AdditionalData["@odata.deltaLink"]?.ToString();
 
             if (saveDelta && !string.IsNullOrEmpty(deltaCodeUrl))
             {
-                var uri = new Uri(deltaCodeUrl);
-                var queryDictionary = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                if (queryDictionary.AllKeys.Where(k => k == TOKEN_PARAM_NAME).Any())
+                var code = DriveDelta.ExtractCodeFromGraphUrl(deltaCodeUrl);
+                if (code != null)
                 {
-                    string deltaCode = queryDictionary[TOKEN_PARAM_NAME] ?? string.Empty;
+                    _trace.TrackTrace("Saving delta token for next contents query");
 
                     // Save delta token for next time
-                    await dm.SetToken(deltaCode);
+                    await dm.SetToken(code);
                 }
             }
 

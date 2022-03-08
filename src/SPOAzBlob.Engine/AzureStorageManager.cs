@@ -11,6 +11,8 @@ namespace SPOAzBlob.Engine
     /// </summary>
     public class AzureStorageManager : AbstractGraphManager
     {
+        #region Constructors
+
         private BlobServiceClient _blobServiceClient;
         private TableServiceClient _tableServiceClient;
         public AzureStorageManager(Config config, DebugTracer trace) : base(config, trace)
@@ -18,6 +20,7 @@ namespace SPOAzBlob.Engine
             _tableServiceClient = new TableServiceClient(_config.ConnectionStrings.Storage);
             _blobServiceClient = new BlobServiceClient(_config.ConnectionStrings.Storage);
         }
+        #endregion
 
         public async Task<Uri> UploadSharePointFileToAzureBlob(string fileTitle, string userName)
         {
@@ -38,6 +41,7 @@ namespace SPOAzBlob.Engine
             var dir = driveItem.ParentReference.Path.Replace("/drive/root:", string.Empty);
 
             string fileTitle = $"{dir}/{driveItem.Name}";
+
             var fileRef = containerClient.GetBlobClient(fileTitle);
             using (var fs = await _client.Sites[_config.SharePointSiteId].Drive.Root.ItemWithPath(fileTitle).Content.Request().GetAsync())
             {
@@ -182,7 +186,7 @@ namespace SPOAzBlob.Engine
 
         internal string GetFileTitleFromFQDN(Uri azFileUrlWithSAS)
         {
-            var prefix = _blobServiceClient.Uri.AbsoluteUri + _config.BlobContainerName;
+            var prefix = "/" + _config.BlobContainerName;
 
             var title = azFileUrlWithSAS.AbsolutePath.Replace(prefix, string.Empty);
 
