@@ -4,6 +4,13 @@
   word-break: break-all;
 }
 
+.navbar-brand{
+  background-image: url('../logo.png');
+  background-repeat: no-repeat;
+  width: 200px;
+  height: 80px;
+}
+
 html {
   font-size: 14px;
 }
