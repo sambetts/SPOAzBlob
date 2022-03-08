@@ -141,7 +141,7 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
                                 </span>
                                 {breadcumbDirs && breadcumbDirs.map((breadcumbDir, dirIdx) => {
                                     if (breadcumbDir) {
-                                        return <span>&gt;
+                                        return <span key={dirIdx}>&gt;
                                             <button onClick={() => this.breadcrumbDirClick(dirIdx, breadcumbDirs)} className="link-button">
                                                 {breadcumbDir}
                                             </button>
