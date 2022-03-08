@@ -1,22 +1,30 @@
 # SPOAzBlob
 SPO Front-end for files in Azure Blob Storage.
 
-Keep files in Azure blob storage; edit them in SharePoint Online. All the scalability of Azure blob with the editing facilities of SharePoint Online – needed especially if you can’t workaround the SharePoint Online service limits.
+Keep files in Azure blob storage; edit them in SharePoint Online. All the scalability of Azure blob with the editing facilities of SharePoint Online – needed especially if you can’t workaround the [SharePoint Online service limits](https://docs.microsoft.com/en-us/office365/servicedescriptions/sharepoint-online-service-description/sharepoint-online-limits).
 
-Usually, MS advice is to keep everything in SPO if you can but sometimes that’s just not possible without major headaches. Requirements like lots of data in the same directory; lots of unique permissions, for example. Either one of those scenarios will cause said headaches and this solution is a possible alternative way of doing things. 
-Basic Architecture
+Usually, MS advice is to keep everything in SPO if you can but sometimes that’s just not possible without major headaches. Requirements like lots of data in the same directory; lots of unique permissions, for example will cause said headaches and this solution is a possible alternative way of doing things. 
+
+Azure blob storage doesn't do everything SharePoint does but it does scale way better for massive datasets. Why not combine the best of both worlds?
+## Basic Architecture
+In this solution we have an:
+
 * ASP.Net + react app to browse files in the storage account and control editing flows.
 * Azure function-app to get content update notifications from Graph when editing.
 * Storage account to hold files & keep track of file locks.
 
 Here’s how this proof-of-concept works, high-level:
+
 ![alt](imgs/image001.png)
 
 Files start in Azure blob storage. When someone wants to edit a file, it’s copied into SPO where the user can edit it, and the file is “locked” in our system. 
+
 While the file is locked, only updates from the locking user will be accepted and updates are received thanks to Graph notifying us of content changes.
+
 When the user has finished, the file is unlocked which makes one last copy back to Azure blob, releases the lock, and deletes the file in SPO. 
 ## How it Works
 First, you need to login to the react app with Azure AD:
+
 ![alt](imgs/image002.png)
 
 This allows the react app to get storage keys from the solution asp.net APIs using a bearer token, and this same login we use for navigating to SharePoint Online.
