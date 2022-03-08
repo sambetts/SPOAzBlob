@@ -16,20 +16,25 @@ Files start in Azure blob storage. When someone wants to edit a file, it’s cop
 While the file is locked, only updates from the locking user will be accepted and updates are received thanks to Graph notifying us of content changes.
 When the user has finished, the file is unlocked which makes one last copy back to Azure blob, releases the lock, and deletes the file in SPO. 
 ## How it Works
-First, you need to login to the react app with Azure AD.
+First, you need to login to the react app with Azure AD:
 ![alt](imgs/image002.png)
+
 This allows the react app to get storage keys from the solution asp.net APIs using a bearer token, and this same login we use for navigating to SharePoint Online.
+
 From the react app you can then start editing files by first locking the file:
 
 ![alt](imgs/image003.png)
+
 Once locked you can edit it:
 
 ![alt](imgs/image004.png)
 
 This’ll copy the file to a SharePoint staging site and give you a SharePoint URL where you can edit the file within SharePoint & Office Online:
+
 ![alt](imgs/image005.png)
 
 As updates are made in Office Online & SharePoint, Graph will notify the function application of these updates:
+
 ![alt](imgs/image006.png)
 
 Note: these update subscriptions are managed in the react app too, and in a timer function in the functions app. 
@@ -85,10 +90,12 @@ We need created:
 2.	Service Bus Namespace + queue with name “graphupdates”.
     * Get namespace connection-string:
 ![alt](imgs/image008.png)
-This will be the “<<SB NAMESPACE CONNECTION STRING>>” value.
+
+This will be the “```<<SB NAMESPACE CONNECTION STRING>>```” value.
     * In the queue, create a new shared access policy (any name you want) with “send” and “listen” rights. Copy queue connection-string:
 ![alt](imgs/image009.png)
-This will be the “<<SB QUEUE CONNECTION STRING>>” value.
+
+This will be the “```<<SB QUEUE CONNECTION STRING>>```” value.
 
 Note: there are two connection-strings we need for service-bus: the namespace connection-string and the queue connection-string.
 
@@ -101,6 +108,7 @@ Namespace version (minus “EntityPath”):
     Endpoint=sb://spoazblobdev.servicebus.windows.net/;SharedAccessKeyName=SendAndReceive;SharedAccessKey=D…U=
 
 3.	Create Application Insights for telemetry and tracing. Note down instrumentation key:
+
 ![alt](imgs/image010.png)
 
 For production deployments you’ll want to host the web-application in an app service, and the functions app in a proper function app.
@@ -108,13 +116,19 @@ For production deployments you’ll want to host the web-application in an app s
 The app needs to access SharePoint, which we do via the “Sites.Selected” permission to selectively allow access to specific sites. This process is documented here. 
 In order to grant scoped SharePoint permissions however, we temporarily need “Sites.FullControl.All” in order to do so. This can be revoked once done – see below for how.
 Go to the Graph Explorer and request permission “Sites.FullControl.All” for Graph Explorer:
+
 ![alt](imgs/image011.png)
+
 Search for the permission “Sites.FullControl.All”:
+
 ![alt](imgs/image012.png)
+
 Click “consent”. You’ll be asked to authorise the application permission, for Graph Explorer:
+
 ![alt](imgs/image013.png)
 
 Verify the permission is added:
+
 ![alt](imgs/image014.png)
 
 Now we can create scoped permissions for the application via less overreaching “Sites.Selected” permission. Once done we can remove “Sites.FullControl.All” permission from Graph Explorer if needed.
@@ -139,20 +153,25 @@ POST: https://graph.microsoft.com/v1.0/sites/m365x352268.sharepoint.com,ecde8139
 ```
 
 Change this ID for your site ID, and this ID (under the “application” section in the JSon body) for your application ID.
-Change the ID in the body for you application registration ID. 
+Change the ID in the body for you application registration ID.
+
 ![alt](imgs/image015.png)
 
 More info on creating site-specific permissions:
 https://developer.microsoft.com/en-us/graph/blogs/controlling-app-access-on-specific-sharepoint-site-collections/
 ### Optional: Revoke “Sites.FullControl.All” for Graph Explorer
 Once permissions to the right sites are created, you can revoke this permission again if you need.
+
 1.	Find the Graph Explorer enterprise application:
+
 ![alt](imgs/image016.png)
 
 Go to permissions & click “review permissions”:
+
 ![alt](imgs/image017.png)
 
 Select “this application has more permissions than I want”.
+
 ![alt](imgs/image018.png)
 
 It gives you a PowerShell script to remove permissions for this application. Review and execute as appropriate (careful not to remove any permissions you still want!).
