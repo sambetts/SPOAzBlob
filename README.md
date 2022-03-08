@@ -51,9 +51,9 @@ Common configuration to all projects:
 Name | Example Value | Description
 --- | ---- | ----
 BlobContainerName | files | Container in the blob storage account with the files
-SharePointSiteId | contoso.sharepoint.com,xxxxxx-a93a-46c1-afd6-19db02ed3aac,xxxxx-… | Graph ID for target SharePoint site
-ConnectionStrings: Storage | DefaultEndpointsProtocol=https;AccountName=spoazblobdev;AccountKey=SChKvSsM7qSz….	Storage account primary connection string
-ConnectionStrings: ServiceBus | Endpoint=sb://spoazblobdev.servicebus.windows.net/;SharedAccessKeyName=SendAndReceive;SharedAccessKey=DAiaHGRc55kLX… ;EntityPath=graphupdates | Service bus connection string, for a specific queue (‘graphupdates’).
+SharePointSiteId | contoso.sharepoint.com,xxxxxx-...,xxxxx-… | Graph ID for target SharePoint site
+ConnectionStrings: Storage | DefaultEndpointsProtocol=https;…. | Storage account primary connection string
+ConnectionStrings: ServiceBus | Endpoint=sb://... ;EntityPath=graphupdates | Service bus connection string, for a specific queue (‘graphupdates’).
 AppInsightsInstrumentationKey | bf8e8ec5-aaaaa-bbbbb-a6c3-6ac864c309b9 | Used for telemetry & tracing
 AzureAd:TenantId | 0cceb74a-aaaaa-4794-bd1e-3bb476333026 | Azure AD app registration 
 AzureAd:Domain | contoso.onmicrosoft.com | Azure AD app registration
