@@ -31,16 +31,18 @@ namespace SPO.ColdStorage.Web.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult<DriveItem>> StartEdit(string url)
         {
-            var emailClaimValue = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn")?.Value;
-            var um = new GraphUserManager(_config, _tracer);
-            if (string.IsNullOrEmpty(emailClaimValue))
+            User? user = null;
+            try
             {
-                return BadRequest("No email claim in user");
+                user = await GetUserName();
             }
-            var user = await um.GetUserByEmail(emailClaimValue);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);  
+            }
 
             var fm = new FileOperationsManager(_config, _tracer);
-            return await fm.StartFileEditInSpo(url, user.DisplayName);
+            return await fm.StartFileEditInSpo(url, GraphUserManager.GetUserName(user));
         }
 
         // Deletes lock for document
@@ -49,19 +51,31 @@ namespace SPO.ColdStorage.Web.Controllers
         public async Task<ActionResult> ReleaseLock(string driveItemId)
         {
             var driveInfo = await _graphServiceClient.Sites[_config.SharePointSiteId].Drive.Root.Request().GetAsync();
+            var fm = new FileOperationsManager(_config, _tracer);
+            var sm = new AzureStorageManager(_config, _tracer);
 
-            var fm = new AzureStorageManager(_config, _tracer);
-            var locks = await fm.GetLocks(driveInfo.ParentReference.DriveId);
-            foreach (var l in locks)
+            try
             {
-                if (l.RowKey == driveItemId)
-                {
-                    await fm.ClearLock(l);
-                    return Ok();
-                }
+                await fm.ReleaseLock(driveItemId, driveInfo.Id, sm);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return NotFound($"No lock with drive Id '{driveItemId}'");
             }
 
-            return NotFound($"No lock with drive Id '{driveItemId}'");
+            return Ok();
+        }
+
+        async Task<User> GetUserName()
+        {
+            var emailClaimValue = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn")?.Value;
+            var um = new GraphUserManager(_config, _tracer);
+            if (string.IsNullOrEmpty(emailClaimValue))
+            {
+                throw new InvalidOperationException("No email claim in user");
+            }
+            var user = await um.GetUserByEmail(emailClaimValue);
+            return user;
         }
 
         // GET: EditActions/GetActiveLocks

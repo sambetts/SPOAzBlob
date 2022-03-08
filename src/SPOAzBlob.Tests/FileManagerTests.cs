@@ -52,9 +52,9 @@ namespace SPOAzBlob.Tests
             var azureStorageManager = new AzureStorageManager(_config!, _tracer);
             var _blobServiceClient = new BlobServiceClient(_config!.ConnectionStrings.Storage);
 
+            var drive = await _client!.Sites[_config.SharePointSiteId].Drive.Request().GetAsync();
 
             // Clear locks
-            var drive = await _client!.Sites[_config.SharePointSiteId].Drive.Request().GetAsync();
             var allLocks = await azureStorageManager.GetLocks(drive.Id);
             foreach (var l in allLocks)
             {
@@ -74,7 +74,7 @@ namespace SPOAzBlob.Tests
 
             var sasUri = _blobServiceClient.GenerateAccountSasUri(AccountSasPermissions.Read, DateTime.Now.AddDays(1), AccountSasResourceTypes.Container | AccountSasResourceTypes.Object);
 
-            // Start editing a fake file
+            // Start editing a fake file, which will create a new lock
             var fm = new FileOperationsManager(_config!, _tracer);
             var azFileUrl = fileRef.Uri.AbsoluteUri + sasUri.Query;
             var newItem = await fm.StartFileEditInSpo(azFileUrl, _config.AzureAdAppDisplayName);
@@ -90,9 +90,10 @@ namespace SPOAzBlob.Tests
 
             // Update SPO file again 
             const string CONTENTSv2 = FILE_CONTENTS + "v2";
+            DriveItem v2File;
             using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(CONTENTSv2)))
             {
-                var result = await _client.Sites[_config.SharePointSiteId].Drive.Items[newItem.Id].Content
+                v2File = await _client.Sites[_config.SharePointSiteId].Drive.Items[newItem.Id].Content
                                 .Request()
                                 .PutAsync<DriveItem>(fs);
             }
@@ -110,6 +111,18 @@ namespace SPOAzBlob.Tests
 
                 Assert.AreEqual(CONTENTSv2, downloadedFileContents);
             }
+
+            // Unlock file
+            await fm.ReleaseLock(v2File.Id, drive.Id, azureStorageManager);
+
+            // Verify unlock worked
+            allLocks = await azureStorageManager.GetLocks(drive.Id);
+            foreach (var l in allLocks)
+            {
+                await azureStorageManager.ClearLock(l);
+            }
+            var allLocksPostUnlock = await azureStorageManager.GetLocks(drive.Id);
+            Assert.IsTrue(allLocksPostUnlock.Count == 0);
         }
     }
 }

@@ -72,5 +72,24 @@ namespace SPOAzBlob.Engine
 
             return returnItems;
         }
+
+        public async Task<DriveItem> GetDriveItem(string driveItemId)
+        {
+
+            var driveItem = await _client.Sites[_config.SharePointSiteId].Drive.Items[driveItemId]
+                .Request().GetAsync();
+            
+            return driveItem;
+        }
+        public static bool FileContentsSame(DriveItem driveItem, FileLock currentLock)
+        {
+            return currentLock.FileContentETag == driveItem.CTag;
+        }
+
+        internal async Task DeleteFile(string driveItemId)
+        {
+            await _client.Sites[_config.SharePointSiteId].Drive.Items[driveItemId]
+                            .Request().DeleteAsync();
+        }
     }
 }

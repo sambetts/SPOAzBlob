@@ -18,5 +18,14 @@ namespace SPOAzBlob.Engine
             return searchResults;
         }
 
+        public static string GetUserName(User user)
+        {
+            if (user is null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return user.DisplayName;
+        }
     }
 }

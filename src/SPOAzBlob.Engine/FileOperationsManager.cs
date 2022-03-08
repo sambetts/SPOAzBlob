@@ -9,6 +9,8 @@ namespace SPOAzBlob.Engine
     /// </summary>
     public class FileOperationsManager : AbstractGraphManager
     {
+        #region Privates & Constructor
+
         private HttpClient _httpClient;
         private AzureStorageManager _azureStorageManager;
         private SPManager _spManager;
@@ -18,6 +20,8 @@ namespace SPOAzBlob.Engine
             _azureStorageManager = new AzureStorageManager(config, trace);
             _spManager = new SPManager(config, trace);
         }
+
+        #endregion
 
         /// <summary>
         /// User wants to start editing a file. Copy to SPO and create lock
@@ -116,11 +120,48 @@ namespace SPOAzBlob.Engine
             return updatedItemsInAzureBlob;
         }
 
+        public async Task ReleaseLock(string driveItemId, string driveId, AzureStorageManager sm)
+        {
+            var locks = await sm.GetLocks(driveId);
+
+            foreach (var l in locks)
+            {
+                if (l.RowKey == driveItemId)
+                {
+                    // Found our target
+                    await ReleaseLock(l, sm);
+                    return;
+                }
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(driveItemId));
+        }
+
+        public async Task ReleaseLock(FileLock existingLock, AzureStorageManager sm)
+        {
+            // Figure out latest changes
+            var spManager = new SPManager(_config, _trace);
+            var spItemsChanged = await spManager.GetDriveItems(_azureStorageManager);
+
+            // One last update back to blob storage?
+            var spm = new SPManager(_config, base._trace);
+            var spItem = await spm.GetDriveItem(existingLock.RowKey); // RowKey == driveItemId
+            var neededUpdate = await UpdateAzureFile(spItem, existingLock);
+
+            // Allow others to edit
+            await sm.ClearLock(existingLock);
+
+            // Clean file
+            await spm.DeleteFile(existingLock.RowKey);
+
+            _trace.TrackTrace($"{nameof(ReleaseLock)}: {existingLock.AzureBlobUrl} unlocked. Needed update from SPO: {neededUpdate}.");
+        }
+
         private async Task<bool> UpdateAzureFile(DriveItem spoDriveItem, FileLock currentLock)
         {
             var userName = GetUserName(spoDriveItem.LastModifiedBy);
 
-            if (currentLock.FileContentETag != spoDriveItem.CTag)
+            if (!SPManager.FileContentsSame(spoDriveItem, currentLock))
             {
                 // Update lock 1st, otherwise UploadSharePointFileToAzureBlob will fail the lock check on contents
                 currentLock.FileContentETag = spoDriveItem.CTag;
