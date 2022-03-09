@@ -1,11 +1,9 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Azure.Storage.Blobs;
 using CommonUtils;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -32,9 +30,12 @@ namespace SPOAzBlob.Functions
             var queryDictionary = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
             if (queryDictionary.AllKeys.Where(k=> k == VALIDATION_PARAM_NAME).Any())
             {
-                var validationTokenValue = queryDictionary[VALIDATION_PARAM_NAME];
-                trace.TrackTrace($"Got Graph API validation call. Returning validation token value '{validationTokenValue}'.");
+                // Return validation response
+                // https://docs.microsoft.com/en-us/graph/webhooks#notification-endpoint-validation
+                var validationTokenValue = WebUtility.UrlDecode(queryDictionary[VALIDATION_PARAM_NAME]);
+                trace.TrackTrace($"Got Graph API validation call. Returning decoded validation token value '{validationTokenValue}'.");
                 response.WriteString(validationTokenValue);
+                response.Headers.Add("Content-Type", "text/plain");
 
                 return response;
             }
