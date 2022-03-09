@@ -51,12 +51,15 @@ With each update notification, the new file contents are copied back into the bl
 Once done the file can be unlocked (manually or with an automatic lock expiry). 
 ## Setup Requirements
 To get this working you’ll need:
-* Visual Studio 2019/2022
-* Dev: ngrok – paid account recommended so you can have static domain names.
+* Visual Studio 2022.
+* Node LTS (v16.14)
+* Dev: 
+    * ngrok – paid account recommended so you can have static domain names.
+    * Windows Azure Storage Emulator/Azurite
 * A SharePoint Online site you have full control over.
-* An Azure subscription
+* An Azure subscription.
 
-For production, the function-app needs a public URL.
+For production, the function-app needs a public HTTPS endpoint.
 
 ## Configuration Inventory
 Common configuration to all projects:
@@ -72,13 +75,13 @@ AzureAd:TenantId | 0cceb74a-aaaaa-4794-bd1e-3bb476333026 | Azure AD app registra
 AzureAd:Domain | contoso.onmicrosoft.com | Azure AD app registration
 AzureAd:Secret | Hh17Q~6NoLlsjS24H…. | Azure AD app registration
 AzureAd:ClientID | 0cceb74a-bbbb-4794-bd1e-3bb476333026 | Azure AD app registration
-WebhookUrlOverride | https://spoblob.ngrok.io/api/GraphNotifications | Function app public-url. For dev, needs to be an ngrok URL.
+WebhookUrlOverride | https://spoblob.ngrok.io/api/GraphNotifications | Function app public-url. For dev, needs to be an ngrok HTTPS URL + "/api/GraphNotifications".
 
 ## Unit tests configuration:
 Name | Example Value | Description
 --- | --- | ---
 AzureAdAppDisplayName | [Same as your Azure AD display name] | Used in unit-tests to ensure locks have the right edit name. Files are uploaded as the app identity so without this info tests won’t work.
-TestEmailAddress | adelev@m365x352268.onmicrosoft.com | Used for getting user from Graph tests.
+TestEmailAddress | adelev@m365x352268.onmicrosoft.com | Used for getting user from Graph tests. There's a unit-test that does a user lookup, and this value is what the test uses to find a Graph user by.
 
 # Setup Steps
 Here’s how to get this solution working. For now, we assume you’re running this solution from Visual Studio.
@@ -87,7 +90,11 @@ Create an Azure AD registration for the web application:
 1.	Register app & follow process for “MSAL.js 2.0 with auth code flow” - https://docs.microsoft.com/en-gb/azure/active-directory/develop/scenario-spa-app-registration
     * Note down the “client ID”, “tenant ID”.
     * Ensure that under “authentication” we have added “single page application” with the redirect URL of our base website (https://contosofiles.azurewebsites.net for example, of if we’re debugging locally, it’ll be https://localhost:44433/)
-2.	Create a secret for registration. Note down value.
+2. Create a secret for registration. Note down value.
+3. Create an API scope so we can call from the React app to the ASP.Net Web API with a JWT bearer token.
+   * On "Expose an API" set your Application ID URI. The 
+4. Grant Graph application permissions: User.Read.All, Sites.Selected to the Azure AD application. Make sure you get the admin approval.
+
 These settings you’ll need for the configuration of the solution later.
 
 ## Create Required Azure Resources
@@ -95,7 +102,7 @@ We need created:
 1.	An Azure storage account. Enable file versions & soft delete if you want.
     * Note down primary connection-string.
 ![alt](imgs/image007.png)
-2.	Service Bus Namespace + queue with name “graphupdates”.
+2.	Service Bus Namespace + a new queue with name “graphupdates”.
     * Get namespace connection-string:
 ![alt](imgs/image008.png)
 
@@ -140,6 +147,9 @@ Verify the permission is added:
 ![alt](imgs/image014.png)
 
 Now we can create scoped permissions for the application via less overreaching “Sites.Selected” permission. Once done we can remove “Sites.FullControl.All” permission from Graph Explorer if needed.
+## Grant CORs Access on the Storage Account
+We use client-side scripting to query 
+
 ### Create the Sites.Selected permission:
 Send a request like this to Graph Explorer, changing the highlighted values.
 
@@ -186,9 +196,10 @@ It gives you a PowerShell script to remove permissions for this application. Rev
 ## Dev: Create Local Environment Configuration Files
 Configuration files aren’t tracked in git, so you need to create them manually.
 Files you need to create:
-* /SPOAzBlob.Web/appsettings.Development.json
-* /SPOAzBlob.Functions/local.settings.json
-* /SPOAzBlob.Tests/appsettings.json
+* SPOAzBlob.Web/appsettings.Development.json
+* SPOAzBlob.Web/ClientApp/src/authConfig.js
+* SPOAzBlob.Functions/local.settings.json
+* SPOAzBlob.Tests/appsettings.json
 
 Each of these have a template version in the same directory (e.g “appsettings.Development - template.json”). Create the above files from their template equivalents. 
 Note that local.settings.json (the function app) needs both the queue & namespace connection-strings for service-bus. 

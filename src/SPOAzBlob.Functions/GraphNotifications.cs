@@ -32,8 +32,9 @@ namespace SPOAzBlob.Functions
             var queryDictionary = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
             if (queryDictionary.AllKeys.Where(k=> k == VALIDATION_PARAM_NAME).Any())
             {
-                trace.TrackTrace("Got Graph API validation call. Returning validation token.");
-                response.WriteString(queryDictionary[VALIDATION_PARAM_NAME]);
+                var validationTokenValue = queryDictionary[VALIDATION_PARAM_NAME];
+                trace.TrackTrace($"Got Graph API validation call. Returning validation token value '{validationTokenValue}'.");
+                response.WriteString(validationTokenValue);
 
                 return response;
             }
