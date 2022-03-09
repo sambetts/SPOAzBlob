@@ -76,7 +76,7 @@ AzureAd:Domain | contoso.onmicrosoft.com | Azure AD app registration
 AzureAd:Secret | Hh17Q~6NoLlsjS24H…. | Azure AD app registration
 AzureAd:ClientID | 0cceb74a-bbbb-4794-bd1e-3bb476333026 | Azure AD app registration
 WebhookUrlOverride | https://spoblob.ngrok.io/api/GraphNotifications | Function app public-url. For dev, needs to be an ngrok HTTPS URL + "/api/GraphNotifications".
-
+```[API_SCOPE]``` | api://0cceb74a-3126-4794-bd1e-3bb476333026/access | API scope Uri for calling own ASP.Net API.
 ## Unit tests configuration:
 Name | Example Value | Description
 --- | --- | ---
@@ -92,7 +92,9 @@ Create an Azure AD registration for the web application:
     * Ensure that under “authentication” we have added “single page application” with the redirect URL of our base website (https://contosofiles.azurewebsites.net for example, of if we’re debugging locally, it’ll be https://localhost:44433/)
 2. Create a secret for registration. Note down value.
 3. Create an API scope so we can call from the React app to the ASP.Net Web API with a JWT bearer token.
-   * On "Expose an API" set your Application ID URI. The 
+   * On "Expose an API" set your Application ID URI. The default of "api://" + app ID is fine.
+   * Create a new scope. Name: "access", for admins and users.
+   * Copy the scope Uri: it shoulc be something like "api://" + app ID + "/acesss". This value goes into the "authConfig.js" file (see below).
 4. Grant Graph application permissions: User.Read.All, Sites.Selected to the Azure AD application. Make sure you get the admin approval.
 
 These settings you’ll need for the configuration of the solution later.
@@ -148,7 +150,12 @@ Verify the permission is added:
 
 Now we can create scoped permissions for the application via less overreaching “Sites.Selected” permission. Once done we can remove “Sites.FullControl.All” permission from Graph Explorer if needed.
 ## Grant CORs Access on the Storage Account
-We use client-side scripting to query 
+We use client-side scripting to query blob container contents, but this needs to be enabled in the storage account. Enable CORs on storage account - https://docs.microsoft.com/en-us/azure/storage/blobs/quickstart-blobs-javascript-browser#setting-up
+
+* For “blob service” allow “GET” and “OPTIONS” from origin “*” (more recommended is from your website DNS “https://spocoldstorage.azurewebsites.net”).
+  * Allowed headers: *
+  * Exposed headers: *
+  * Max age: 86400 (1 day)
 
 ### Create the Sites.Selected permission:
 Send a request like this to Graph Explorer, changing the highlighted values.
