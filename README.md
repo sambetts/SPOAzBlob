@@ -5,6 +5,8 @@ Keep files in Azure blob storage; edit them in SharePoint Online. All the scalab
 
 Usually, MS advice is to keep everything in SPO if you can but sometimes that’s just not possible without major headaches. Requirements like lots of data in the same directory; lots of unique permissions, for example will cause said headaches and this solution is a possible alternative way of doing things. 
 
+![alt](imgs/logo.big.png)
+
 Azure blob storage doesn't do everything SharePoint does but it does scale way better for massive datasets. Why not combine the best of both worlds?
 ## Basic Architecture
 In this solution we have an:
