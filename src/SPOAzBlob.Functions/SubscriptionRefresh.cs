@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CommonUtils;
 using Microsoft.Azure.Functions.Worker;
 using SPOAzBlob.Engine;
+using SPOAzBlob.Functions.Models;
 
 namespace SPOAzBlob.Functions
 {
@@ -11,12 +12,12 @@ namespace SPOAzBlob.Functions
         // Every 2 mins: 0 */2 * * * *
         // Every day: 0 0 * * *
         [Function("SubscriptionRefresh")]
-        public static async Task Run([TimerTrigger("0 0 * * *")] SubscriptionRefreshInfo timerInfo, FunctionContext context)
+        public static async Task Run([TimerTrigger("0 0 * * *")] TimerJobRefreshInfo timerInfo, FunctionContext context)
         {
             var trace = (DebugTracer)context.InstanceServices.GetService(typeof(DebugTracer));
             var config = (Config)context.InstanceServices.GetService(typeof(Config));
 
-            trace.TrackTrace($"SubscriptionRefresh executed.");
+            trace.TrackTrace($"SubscriptionRefresh executing.");
 
 #if DEBUG
             const string PROTOCOL = "http";
@@ -47,19 +48,4 @@ namespace SPOAzBlob.Functions
         }
     }
 
-    public class SubscriptionRefreshInfo
-    {
-        public SubscriptionRefreshScheduleStatus ScheduleStatus { get; set; }
-
-        public bool IsPastDue { get; set; }
-    }
-
-    public class SubscriptionRefreshScheduleStatus
-    {
-        public DateTime Last { get; set; }
-
-        public DateTime Next { get; set; }
-
-        public DateTime LastUpdated { get; set; }
-    }
 }

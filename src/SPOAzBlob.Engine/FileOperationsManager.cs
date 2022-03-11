@@ -14,6 +14,7 @@ namespace SPOAzBlob.Engine
         private HttpClient _httpClient;
         private AzureStorageManager _azureStorageManager;
         private SPManager _spManager;
+
         public FileOperationsManager(Config config, DebugTracer trace) : base(config, trace)
         {
             _httpClient = new HttpClient();
@@ -47,10 +48,10 @@ namespace SPOAzBlob.Engine
                 }
                 else throw;   // Something else.
             }
-            
+
             // Check if this file is already being edited
             if (existingSpoDriveItem != null)
-            { 
+            {
                 // Do we have a lock for this file?
                 var existingItemLock = await _azureStorageManager.GetLock(existingSpoDriveItem);
                 if (existingItemLock != null)
@@ -76,7 +77,7 @@ namespace SPOAzBlob.Engine
         {
             // Figure out latest changes
             var spManager = new SPManager(_config, _trace);
-            var spItemsChanged = await spManager.GetDriveItems(_azureStorageManager);
+            var spItemsChanged = await spManager.GetUpdatedDriveItems(_azureStorageManager);
 
             var updatedItemsInAzureBlob = new List<DriveItem>();
             if (spItemsChanged.Count > 0)
@@ -120,16 +121,20 @@ namespace SPOAzBlob.Engine
             return updatedItemsInAzureBlob;
         }
 
-        public async Task ReleaseLock(string driveItemId, string driveId, AzureStorageManager sm)
+
+        /// <summary>
+        /// Clear lock, update Azure file, and try deleting SPO file.
+        /// </summary>
+        public async Task FinishEditing(string driveItemId, string driveId)
         {
-            var locks = await sm.GetLocks(driveId);
+            var locks = await _azureStorageManager.GetLocks(driveId);
 
             foreach (var l in locks)
             {
                 if (l.RowKey == driveItemId)
                 {
                     // Found our target
-                    await ReleaseLock(l, sm);
+                    await FinishEditing(l);
                     return;
                 }
             }
@@ -137,11 +142,11 @@ namespace SPOAzBlob.Engine
             throw new ArgumentOutOfRangeException(nameof(driveItemId));
         }
 
-        public async Task ReleaseLock(FileLock existingLock, AzureStorageManager sm)
+        async Task FinishEditing(FileLock existingLock)
         {
             // Figure out latest changes
             var spManager = new SPManager(_config, _trace);
-            var spItemsChanged = await spManager.GetDriveItems(_azureStorageManager);
+            var spItemsChanged = await spManager.GetUpdatedDriveItems(_azureStorageManager);
 
             // One last update back to blob storage?
             var spm = new SPManager(_config, base._trace);
@@ -149,12 +154,50 @@ namespace SPOAzBlob.Engine
             var neededUpdate = await UpdateAzureFile(spItem, existingLock);
 
             // Allow others to edit
-            await sm.ClearLock(existingLock);
+            await _azureStorageManager.ClearLock(existingLock);
 
-            // Clean file
-            await spm.DeleteFile(existingLock.RowKey);
+            // Clean file. May fail if editing was just done
+            try
+            {
+                await spm.DeleteFile(existingLock.RowKey);
+            }
+            catch (ServiceException ex)
+            {
+                _trace.TrackExceptionAndLogToTrace(ex);
+                _trace.TrackTrace($"Couldn't clean-up file in SPO - see logged exception.");
+            }
 
-            _trace.TrackTrace($"{nameof(ReleaseLock)}: {existingLock.AzureBlobUrl} unlocked. Needed update from SPO: {neededUpdate}.");
+            _trace.TrackTrace($"{nameof(FinishEditing)}: {existingLock.AzureBlobUrl} unlocked. Needed update from SPO: {neededUpdate}.");
+        }
+
+        /// <summary>
+        /// Clean anything in SPO without an active lock
+        /// </summary>
+        public async Task<int> CleanOldFiles(string driveId)
+        {
+            var locks = await _azureStorageManager.GetLocks(driveId);
+            var cleaned = 0;
+
+            var spManager = new SPManager(_config, _trace);
+            var allItems = await spManager.GetDriveItems();
+            foreach (var spItem in allItems)
+            {
+                if (!locks.Where(l => l.RowKey == spItem.Id).Any())
+                {
+                    try
+                    {
+                        await spManager.DeleteFile(spItem.Id);
+                        cleaned++;
+                    }
+                    catch (ServiceException ex)
+                    {
+                        _trace.TrackExceptionAndLogToTrace(ex);
+                        _trace.TrackTrace($"Couldn't clean-up file in SPO - see logged exception.");
+                    }
+                }
+            }
+
+            return cleaned;
         }
 
         private async Task<bool> UpdateAzureFile(DriveItem spoDriveItem, FileLock currentLock)

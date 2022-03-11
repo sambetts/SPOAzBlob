@@ -141,7 +141,7 @@ namespace SPOAzBlob.Tests
             await deltaManager.DeleteToken();
 
             // Get without a delta token
-            await spManager.GetDriveItems(azManager);
+            await spManager.GetUpdatedDriveItems(azManager);
 
             // We should now have a new delta token
             var postGetDeltaToken = await deltaManager.GetToken();

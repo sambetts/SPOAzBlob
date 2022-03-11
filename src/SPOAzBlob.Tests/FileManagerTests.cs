@@ -45,7 +45,7 @@ namespace SPOAzBlob.Tests
 
         }
 
-        // Upload a file to Az blob; start editing; make a change; check we can see change again.
+        // Upload a file to Az blob; start editing; make a change; check we can see change again; finish editing.
         [TestMethod]
         public async Task FullCycleTest()
         {
@@ -113,7 +113,7 @@ namespace SPOAzBlob.Tests
             }
 
             // Unlock file
-            await fm.ReleaseLock(v2File.Id, drive.Id, azureStorageManager);
+            await fm.FinishEditing(v2File.Id, drive.Id);
 
             // Verify unlock worked
             allLocks = await azureStorageManager.GetLocks(drive.Id);
@@ -123,6 +123,58 @@ namespace SPOAzBlob.Tests
             }
             var allLocksPostUnlock = await azureStorageManager.GetLocks(drive.Id);
             Assert.IsTrue(allLocksPostUnlock.Count == 0);
+        }
+
+        // Upload x1 file to SPO manually, and x1 file via editing a new file. Clean-up & check only 1 file was deleted.
+        [TestMethod]
+        public async Task CleanupTests()
+        {
+            var drive = await _client!.Sites[_config!.SharePointSiteId].Drive.Request().GetAsync();
+            var blobServiceClient = new BlobServiceClient(_config!.ConnectionStrings.Storage);
+            var spManager = new SPManager(_config!, _tracer);
+            var azureStorageManager = new AzureStorageManager(_config!, _tracer);
+
+            // Prep: run an clean so we can test only our file operations in this test.
+            var fm = new FileOperationsManager(_config!, _tracer);
+            await fm.CleanOldFiles(drive.Id);
+
+            // Upload a fake file to blob
+            var containerClient = blobServiceClient.GetBlobContainerClient(_config.BlobContainerName);
+            var fileRef = containerClient.GetBlobClient($"UnitTest-{DateTime.Now.Ticks}.txt");
+            using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(FILE_CONTENTS)))
+            {
+                await fileRef.UploadAsync(fs, true);
+            }
+
+            // Start edit
+            var sasUri = blobServiceClient.GenerateAccountSasUri(AccountSasPermissions.Read,
+                DateTime.Now.AddDays(1),
+                AccountSasResourceTypes.Container | AccountSasResourceTypes.Object);
+            var azFileUrl = fileRef.Uri.AbsoluteUri + sasUri.Query;
+            var newItem = await fm.StartFileEditInSpo(azFileUrl, _config.AzureAdAppDisplayName);
+            Assert.IsNotNull(newItem);
+
+
+            // Upload just a random file
+            const string CONTENTSv2 = FILE_CONTENTS + "v2";
+            using (var fs = new MemoryStream(Encoding.UTF8.GetBytes(CONTENTSv2)))
+            {
+                await spManager.UploadDoc($"RandomFile {DateTime.Now.Ticks}.txt", fs);
+            }
+
+            var cleanCount = await fm.CleanOldFiles(drive.Id);
+
+            // Our random file only should be cleaned
+            Assert.IsTrue(cleanCount == 1);
+
+
+            // Unlock file so we can clean
+            await azureStorageManager.ClearLock(newItem);
+
+            // Our edited file only should be cleaned
+            cleanCount = await fm.CleanOldFiles(drive.Id);
+            Assert.IsTrue(cleanCount == 1);
+
         }
     }
 }

@@ -50,13 +50,12 @@ namespace SPO.ColdStorage.Web.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult> ReleaseLock(string driveItemId)
         {
-            var driveInfo = await _graphServiceClient.Sites[_config.SharePointSiteId].Drive.Root.Request().GetAsync();
+            var driveInfo = await _graphServiceClient.Sites[_config.SharePointSiteId].Drive.Request().GetAsync();
             var fm = new FileOperationsManager(_config, _tracer);
-            var sm = new AzureStorageManager(_config, _tracer);
 
             try
             {
-                await fm.ReleaseLock(driveItemId, driveInfo.Id, sm);
+                await fm.FinishEditing(driveItemId, driveInfo.Id);
             }
             catch (ArgumentOutOfRangeException)
             {

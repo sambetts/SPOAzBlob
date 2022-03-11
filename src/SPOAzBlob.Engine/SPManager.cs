@@ -22,8 +22,10 @@ namespace SPOAzBlob.Engine
             return result;
         }
 
-
-        public async Task<List<DriveItem>> GetDriveItems(AzureStorageManager azureStorageManager)
+        /// <summary>
+        /// Get drive items using delta if there is one
+        /// </summary>
+        public async Task<List<DriveItem>> GetUpdatedDriveItems(AzureStorageManager azureStorageManager)
         {
             var dm = new DriveDeltaTokenManager(_config, _trace, azureStorageManager);
             var deltaCode = string.Empty;
@@ -49,7 +51,14 @@ namespace SPOAzBlob.Engine
         private async Task<List<DriveItem>> GetDriveDeltaRecursive(IDriveItemDeltaRequest driveItemDeltaRequest, bool saveDelta, DriveDeltaTokenManager dm)
         {
             var deltaItems = await driveItemDeltaRequest.GetAsync();
-            var deltaCodeUrl = deltaItems.AdditionalData["@odata.deltaLink"]?.ToString();
+
+            // Do we have a delta code?
+            const string DELTA_KEY = "@odata.deltaLink";
+            var deltaCodeUrl = string.Empty;
+            if (deltaItems.AdditionalData.ContainsKey(DELTA_KEY))
+            {
+                deltaCodeUrl = deltaItems.AdditionalData[DELTA_KEY].ToString();
+            }
 
             if (saveDelta && !string.IsNullOrEmpty(deltaCodeUrl))
             {
@@ -75,12 +84,20 @@ namespace SPOAzBlob.Engine
 
         public async Task<DriveItem> GetDriveItem(string driveItemId)
         {
-
             var driveItem = await _client.Sites[_config.SharePointSiteId].Drive.Items[driveItemId]
                 .Request().GetAsync();
             
             return driveItem;
         }
+
+        public async Task<List<DriveItem>> GetDriveItems()
+        {
+            var driveItems = await _client.Sites[_config.SharePointSiteId].Drive.Root.Children
+                .Request().GetAsync();
+
+            return driveItems.ToList();
+        }
+
         public static bool FileContentsSame(DriveItem driveItem, FileLock currentLock)
         {
             return currentLock.FileContentETag == driveItem.CTag;

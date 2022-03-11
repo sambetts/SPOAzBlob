@@ -155,13 +155,15 @@ export class BlobFileList extends Component<FileListProps, FileListState> {
 
 
                         <div id="file-list">
+                            
                             {this.state.currentDirs && this.state.currentDirs.map(dir => {
-                                return <Dir dir={dir} setDir={(dir: string) => this.setDir(dir)} />
-                            })
+                                return <Dir dir={dir} setDir={(dir: string) => this.setDir(dir)} key={dir} />
+                                })
                             }
-                            {this.state.blobItems && this.state.blobItems.map(blob => {
-                                return <File blobAndLock={blob} storageInfo={this.props.config.storageInfo}
-                                    token={this.props.accessToken} refreshAllLocks={this.refreshAllLocks} />
+                            
+                            {this.state.blobItems && this.state.blobItems.map(blobAndLock => {
+                                return <File blobAndLock={blobAndLock} storageInfo={this.props.config.storageInfo}
+                                    token={this.props.accessToken} refreshAllLocks={this.refreshAllLocks} key={blobAndLock.blob.name} />
                             })
                             }
                         </div>
