@@ -17,3 +17,5 @@
 /src/SPOAzBlob.Tests/bin/Debug/net6.0
 /src/SPOAzBlob.Tests/obj
 /src/SPOAzBlob.Tests/appsettings.json
+/src/SPOAzBlob.Web/bin/Debug/net6.0
+/src/SPOAzBlob.Web/obj
